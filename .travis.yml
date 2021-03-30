@@ -1,0 +1,21 @@
+language: java
+
+env:
+  - NODE_VERSION="12.13.1"
+  
+services:
+  - docker
+
+cache:
+    directories:
+      - .autoconf
+      - $HOME/.m2
+      - node_modules
+
+jobs:
+  include:
+    - stage: Prepare
+      script:
+      - nvm install $NODE_VERSION
+      - mvn install -N -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+    - stage : Build
