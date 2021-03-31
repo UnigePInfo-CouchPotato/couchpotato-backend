@@ -2,7 +2,7 @@
 /shelf/
 /workspace.xml
 # Datasource local storage ignored files
-/../../../../../../../../../../:\Users\FAYSA\Documents\UNIGE\ProjetInformatique\g2-couchpotato\couchpotato-backend\Microservice1\.idea/dataSources/
+/../../../../../../../../../:\Users\FAYSA\Documents\UNIGE\ProjetInformatique\g2-couchpotato\couchpotato-backend\.idea/dataSources/
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
