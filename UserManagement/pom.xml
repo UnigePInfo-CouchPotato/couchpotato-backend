@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>Microservice2</artifactId>
+    <artifactId>UserManagement</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
