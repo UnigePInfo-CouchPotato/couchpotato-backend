@@ -9,8 +9,8 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>Microservice1</module>
-        <module>Microservice2</module>
+        <module>Authentication</module>
+        <module>UserManagement</module>
         <module>Microservice3</module>
     </modules>
 
