@@ -20,8 +20,8 @@
         <!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-sync</artifactId>
-            <version>3.12.8</version>
+            <artifactId>mongodb-driver</artifactId>
+            <version>3.11.2</version>
         </dependency>
 
     </dependencies>
