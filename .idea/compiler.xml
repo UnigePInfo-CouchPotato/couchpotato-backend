@@ -12,6 +12,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="api-gateway" target="11" />
       <module name="Microservice1" target="11" />
       <module name="Microservice2" target="11" />
     </bytecodeTargetLevel>
