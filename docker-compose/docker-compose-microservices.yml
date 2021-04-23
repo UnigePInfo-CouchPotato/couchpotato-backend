@@ -34,7 +34,7 @@ services:
     # image: faysal's dockerhub/image:tag
 #    image: faysalsaber/user-management-service:latest
     build: #points to the location of the dockerfile
-      /home/azeem/Documents/UNIGE/P-Info/g2-couchpotato/couchpotato-backend/UserManagement/
+      ../UserManagement/
     hostname: usermanagement-service
     environment:
       THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_CONNECTION_DASH_URL: "jdbc:postgresql://usermanagement-database:5432/usermanagement"
