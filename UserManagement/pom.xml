@@ -15,7 +15,9 @@
     <packaging>war</packaging>
 
     <properties>
-<!--        <container.folder>${project.build.directory}/wildfly-${wildfly.version}</container.folder>-->
+        <container.folder>${project.build.directory}/wildfly-${wildfly.version}</container.folder>
+<!--        <container.folder>${project.build.directory}/wildfly</container.folder>-->
+        <postgresql.jdbc.driver.version>42.2.14</postgresql.jdbc.driver.version>
         <skip-docker-build>false</skip-docker-build>
     </properties>
 
@@ -104,6 +106,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <version>4.2.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -111,13 +114,20 @@
             <artifactId>hamcrest-all</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.jdbc.driver.version}</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver</artifactId>
-            <version>3.11.2</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.mongodb</groupId>-->
+<!--            <artifactId>mongodb-driver</artifactId>-->
+<!--            <version>3.11.2</version>-->
+<!--        </dependency>-->
+
+
 
     </dependencies>
 
@@ -133,40 +143,40 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-<!--                    <execution>-->
-<!--                        <id>pre-integration-test-prepare-agent</id>-->
-<!--                        <phase>pre-integration-test</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>prepare-agent</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <append>false</append>-->
-<!--                            <propertyName>jacoco.it.tests</propertyName>-->
-<!--                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>-->
-<!--                            <address>localhost</address>-->
-<!--                            <output>tcpserver</output>-->
-<!--                            <port>10001</port>-->
-<!--                            <reset>false</reset>-->
-<!--                            <skip>${skip.dump}</skip>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                    <execution>-->
-<!--                        <id>post-integration-test-prepare-agent</id>-->
-<!--                        <phase>post-integration-test</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>dump</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <append>false</append>-->
-<!--                            <propertyName>jacoco.it.tests</propertyName>-->
-<!--                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>-->
-<!--                            <address>localhost</address>-->
-<!--                            <output>tcpserver</output>-->
-<!--                            <port>10001</port>-->
-<!--                            <reset>false</reset>-->
-<!--                            <skip>${skip.dump}</skip>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
+                    <execution>
+                        <id>pre-integration-test-prepare-agent</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <append>false</append>
+                            <propertyName>jacoco.it.tests</propertyName>
+                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                            <address>localhost</address>
+                            <output>tcpserver</output>
+                            <port>10001</port>
+                            <reset>false</reset>
+                            <skip>${skip.dump}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test-prepare-agent</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>dump</goal>
+                        </goals>
+                        <configuration>
+                            <append>false</append>
+                            <propertyName>jacoco.it.tests</propertyName>
+                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                            <address>localhost</address>
+                            <output>tcpserver</output>
+                            <port>10001</port>
+                            <reset>false</reset>
+                            <skip>${skip.dump}</skip>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>merge-coverage</id>
                         <phase>install</phase>
@@ -215,18 +225,18 @@
                             <goal>package</goal>
                         </goals>
                     </execution>
-<!--                    <execution>-->
-<!--                        <id>pre-integration-test-start</id>-->
-<!--                        <phase>pre-integration-test</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>start</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <jvmArguments>-->
-<!--                                <jvmArgument>${jacoco.it.tests}</jvmArgument>-->
-<!--                            </jvmArguments>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
+                    <execution>
+                        <id>pre-integration-test-start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <jvmArguments>
+                                <jvmArgument>${jacoco.it.tests}</jvmArgument>
+                            </jvmArguments>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>verify-stop</id>
                         <phase>verify</phase>
@@ -237,42 +247,40 @@
                 </executions>
             </plugin>
 
-<!--            <plugin>-->
-<!--                <groupId>org.codehaus.mojo</groupId>-->
-<!--                <artifactId>sql-maven-plugin</artifactId>-->
-<!--                <version>1.5</version>-->
-<!--                <dependencies>-->
-<!--                    <dependency>-->
-<!--                        <groupId>com.h2database</groupId>-->
-<!--                        <artifactId>h2</artifactId>-->
-<!--                        <version>${version.h2}</version>-->
-<!--                    </dependency>-->
-<!--                </dependencies>-->
-<!--                <configuration>-->
-<!--                    <driver>org.h2.Driver</driver>-->
-<!--                    &lt;!&ndash; TO MODIFY :                               &ndash;&gt;-->
-<!--                    <url>jdbc:h2:${java.io.tmpdir}/target/InstrumentDB;AUTO_SERVER=TRUE;AUTO_SERVER=TRUE</url>-->
-<!--                    <username>sa</username>-->
-<!--                    <password>sa</password>-->
-<!--                    <autocommit>true</autocommit>-->
-<!--                    <skip>${maven.test.skip}</skip>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>create-db</id>-->
-<!--                        <phase>pre-integration-test</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>execute</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <srcFiles>-->
-<!--                                &lt;!&ndash; TO MODIFY :                               &ndash;&gt;-->
-<!--                                <srcFile>${project.basedir}/src/main/resources/META-INF/instruments_test_data.sql</srcFile>-->
-<!--                            </srcFiles>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>sql-maven-plugin</artifactId>
+                <version>1.5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <version>${version.h2}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <driver>org.h2.Driver</driver>
+                    <url>jdbc:h2:${java.io.tmpdir}/target/UserManagementDB;AUTO_SERVER=TRUE;AUTO_SERVER=TRUE</url>
+                    <username>sa</username>
+                    <password>sa</password>
+                    <autocommit>true</autocommit>
+                    <skip>${maven.test.skip}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>create-db</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <srcFiles>
+                                <srcFile>${project.basedir}/src/main/resources/META-INF/usermanagement_tests_data.sql</srcFile>
+                            </srcFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
