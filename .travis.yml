@@ -1,21 +1,27 @@
 language: java
-
 env:
-  - NODE_VERSION="12.13.1"
-  
+- NODE_VERSION="12.13.1"
+- SERVER_IP_ADDRESS=129.194.10.127
 services:
-  - docker
-
+- docker
 cache:
-    directories:
-      - .autoconf
-      - $HOME/.m2
-      - node_modules
-
+  directories:
+  - ".autoconf"
+  - "$HOME/.m2"
+  - node_modules
 jobs:
   include:
-    - stage: Prepare
-      script:
-      - nvm install $NODE_VERSION
-      - mvn install -N -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-    - stage : Build
+  - stage: Prepare
+    script:
+    - nvm install $NODE_VERSION
+    - mvn install -N -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+  - stage: Build
+before_install:
+- openssl aes-256-cbc -K $encrypted_dfdcfd5172af_key -iv $encrypted_dfdcfd5172af_iv
+  -in deploy_key.enc -out ./deploy_key -d
+- ssh-add ./deploy_key
+- eval "$(ssh-agent -s)"
+- chmod 600 ./deploy_key
+- echo -e "Host $SERVER_IP_ADDRESS\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+- ssh -i ./deploy_key root@129.194.10.127 pwd
+
