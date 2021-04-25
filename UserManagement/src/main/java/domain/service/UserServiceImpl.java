@@ -15,8 +15,17 @@ import java.util.List;
 @Log
 public class UserServiceImpl implements UserService {
 
-    @PersistenceContext(unitName = "UserPU")
+    @PersistenceContext(unitName = "UserManagementPU")
     private EntityManager em;
+
+    public UserServiceImpl(){
+
+	}
+
+	public UserServiceImpl(EntityManager em){
+    	this();
+    	this.em = em;
+	}
     
 	@Override
 	public List<User> getAll() {

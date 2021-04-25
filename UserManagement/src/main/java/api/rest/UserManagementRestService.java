@@ -1,10 +1,12 @@
 package api.rest;
 
+import domain.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,6 +20,9 @@ import javax.ws.rs.core.MediaType;
         @Authorization(value="sampleoauth", scopes = {})
 })
 public class UserManagementRestService {
+
+    @Inject
+    private UserService userService;
 
 
     @GET
