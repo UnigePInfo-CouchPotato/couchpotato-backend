@@ -1,6 +1,6 @@
 package domain.service;
 
-import domain.model.User;
+import domain.model.Users;
 import lombok.extern.java.Log;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -28,20 +28,20 @@ public class UserServiceImpl implements UserService {
 	}
     
 	@Override
-	public List<User> getAll() {
+	public List<Users> getAll() {
 		log.info("retrieve all users");
 		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<User> criteria = builder.createQuery( User.class );
-		criteria.from(User.class);
+		CriteriaQuery<Users> criteria = builder.createQuery( Users.class );
+		criteria.from(Users.class);
 		return em.createQuery( criteria ).getResultList();
 	}
 	
 	@Override
-	public User get(String username) {
-		return em.find(User.class, username);
+	public Users get(String username) {
+		return em.find(Users.class, username);
 	}
-	public User get(int id) {
-		return em.find(User.class, id);
+	public Users get(int id) {
+		return em.find(Users.class, id);
 	}
 
 
@@ -50,24 +50,24 @@ public class UserServiceImpl implements UserService {
 		log.info("Count the number of users");
 		CriteriaBuilder qb = em.getCriteriaBuilder();
 		CriteriaQuery<Long> cq = qb.createQuery(Long.class);
-		cq.select(qb.count(cq.from(User.class)));
+		cq.select(qb.count(cq.from(Users.class)));
 		return em.createQuery(cq).getSingleResult();
 	}
 
 	@Override
 	@Transactional
-	public void update(User user) {
-		User u = get(user.getId());
+	public void update(Users users) {
+		Users u = get(users.getId());
 		if (u != null) {
-			em.merge(user);
+			em.merge(users);
 		} else {
-			throw new IllegalArgumentException("User does not exist : " + user.getId());
+			throw new IllegalArgumentException("User does not exist : " + users.getId());
 		}
 	}
 
 	@Override
 	public boolean exists(int id) {
-		User u = em.find(User.class, id);
+		Users u = em.find(Users.class, id);
 		return (u!=null);
 	}
 
