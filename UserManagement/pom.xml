@@ -251,6 +251,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>sql-maven-plugin</artifactId>
                 <version>1.5</version>
+
                 <dependencies>
                     <dependency>
                         <groupId>com.h2database</groupId>
@@ -258,6 +259,7 @@
                         <version>${version.h2}</version>
                     </dependency>
                 </dependencies>
+
                 <configuration>
                     <driver>org.h2.Driver</driver>
                     <url>jdbc:h2:${java.io.tmpdir}/target/UserManagementDB;AUTO_SERVER=TRUE;AUTO_SERVER=TRUE</url>
@@ -266,6 +268,7 @@
                     <autocommit>true</autocommit>
                     <skip>${maven.test.skip}</skip>
                 </configuration>
+
                 <executions>
                     <execution>
                         <id>create-db</id>
