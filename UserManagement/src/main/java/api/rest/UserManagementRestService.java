@@ -22,7 +22,7 @@ public class UserManagementRestService {
     @Inject
     private UserService userService;
 
-    // False credentials for login
+    // False credentials for login in pseudo-db
     private LinkedHashMap<String, String> falseLoginCredentials = new LinkedHashMap<String, String>(){{
         put("jon", "johnDoeHashedPassword");
     }};
@@ -33,12 +33,43 @@ public class UserManagementRestService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response register(LinkedHashMap<String, String> req) {
-        System.out.println(req.get("username"));
-        System.out.println(req.get("email"));
-        System.out.println(req.get("password"));
-        LinkedHashMap<String, String> message = new LinkedHashMap<>();
-        message.put("result", "It's working");
-        return Response.status(200).entity(message).build();
+        String reg_username = req.get("username");
+        String reg_email = req.get("email");
+        String reg_password = req.get("password");
+
+        LinkedHashMap<String, String> returnMessage = new LinkedHashMap<>();
+//        message.put("result", "It's working");
+//        return Response.status(200).entity(message).build();
+
+        //check if username already exists:
+        if (falseLoginCredentials.containsKey(reg_username)){
+
+            //username already exists, try another
+            returnMessage.put("result", "username already exists, try another");
+            return Response.status(401).entity(returnMessage).build();
+        }
+        else{
+            //check email adn pwd are not empty
+            if (!(reg_email.isEmpty()) && !(reg_password.isEmpty()) ) {
+                //add user to falseLoginCredential
+                falseLoginCredentials.put(reg_username,reg_password);
+
+                returnMessage.put("result", "registration ok");
+                return Response.status(200).entity(returnMessage).build();
+
+            }
+
+            // case email and password empty
+            else {
+                returnMessage.put("result", "please fill in email and password");
+                return Response.status(401).entity(returnMessage).build();
+
+            }
+
+
+        }
+
+
     }
 
     @POST
