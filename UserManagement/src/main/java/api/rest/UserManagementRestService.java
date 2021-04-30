@@ -21,13 +21,10 @@ public class UserManagementRestService {
     @Inject
     private UserService userService;
 
-    // Fake credentials for login in pseudo-db
-    private final LinkedHashMap<String, String> fakeLoginCredentials = new LinkedHashMap<String, String>(){{
-        put("john", "johnDoeHashedPassword");
+    // Fake credentials for login/register in pseudo-db
+    private final LinkedHashMap<String, String> fakeCredentials = new LinkedHashMap<String, String>(){{
+        put("John", "johnDoeHashedPassword");
     }};
-
-    // Fake username for register in pseudo-db
-    private final String fakeUserName = "John";
 
     /*Mock API*/
     @POST
@@ -39,30 +36,34 @@ public class UserManagementRestService {
         String reg_email = req.get("email");
         String reg_password = req.get("password");
 
-        LinkedHashMap<String, String> returnMessage = new LinkedHashMap<>();
+        LinkedHashMap<String, String> errorMessage = new LinkedHashMap<>();
+        LinkedHashMap<String, LinkedHashMap<String, String>> successMessage = new LinkedHashMap<>();
 
         //Check if params are valid
         if (reg_username == null || reg_email == null || reg_password == null) {
-            returnMessage.put("message", "invalid parameters, please check your syntax");
-            return Response.status(400).entity(returnMessage).build();
+            errorMessage.put("error", "invalid parameters, please check your request");
+            return Response.status(400).entity(errorMessage).build();
         }
 
         //Check if username already exists: (i.e. username is equal to "John")
-        if (reg_username.equals(fakeUserName)){
+        if (fakeCredentials.containsKey(reg_username)){
             //Username already exists, try another
-            returnMessage.put("message", "username already exists, try another");
-            return Response.status(409).entity(returnMessage).build();
+            errorMessage.put("error", "username already exists, try another");
+            return Response.status(409).entity(errorMessage).build();
         }
 
         //Check if email or password fields are empty
         if ((reg_email.isEmpty()) || (reg_password.isEmpty())) {
-            returnMessage.put("message", "please fill in email and password");
-            return Response.status(403).entity(returnMessage).build();
+            errorMessage.put("error", "please fill in email and password");
+            return Response.status(403).entity(errorMessage).build();
         }
 
         //Everything is ok
-        returnMessage.put("message", "registration ok");
-        return Response.status(201).entity(returnMessage).build();
+        successMessage.put("data", new LinkedHashMap<String, String>(){{
+            put("id", "3");
+            put("message", "registration ok");
+        }});
+        return Response.status(201).entity(successMessage).build();
     }
 
     @POST
@@ -73,33 +74,36 @@ public class UserManagementRestService {
         String userName = req.get("username");
         String userPassword = req.get("password");
 
-        LinkedHashMap<String, String> returnMessage = new LinkedHashMap<>();
+        LinkedHashMap<String, String> errorMessage = new LinkedHashMap<>();
+        LinkedHashMap<String, LinkedHashMap<String, String>> successMessage = new LinkedHashMap<>();
 
         //Check if params are valid
         if (userName == null || userPassword == null) {
-            returnMessage.put("message", "invalid parameters, please check your syntax");
-            return Response.status(400).entity(returnMessage).build();
+            errorMessage.put("error", "invalid parameters, please check your request");
+            return Response.status(400).entity(errorMessage).build();
         }
 
         //Check if username exists
-        if (fakeLoginCredentials.containsKey(userName)) {
+        if (fakeCredentials.containsKey(userName)) {
             //Check if passwords are the same
-            String password = fakeLoginCredentials.get(userName);
+            String password = fakeCredentials.get(userName);
 
             if (password.equals(userPassword)) {
-                returnMessage.put("message", "username ok");
-                returnMessage.put("token", "fakeTokenForMockApiTestingPurposes");
-                return Response.status(200).entity(returnMessage).build();
+                successMessage.put("data", new LinkedHashMap<String, String>(){{
+                    put("message", "username ok");
+                    put("token", "fakeTokenForMockApiTestingPurposes");
+                }});
+                return Response.status(200).entity(successMessage).build();
             }
 
             //Wrong password
-            returnMessage.put("message", "wrong password");
-            return Response.status(401).entity(returnMessage).build();
+            errorMessage.put("error", "wrong password");
+            return Response.status(401).entity(errorMessage).build();
         }
 
         //Username not found
-        returnMessage.put("message", "username does not exist");
-        return Response.status(404).entity(returnMessage).build();
+        errorMessage.put("error", "username does not exist");
+        return Response.status(404).entity(errorMessage).build();
     }
 
     @GET
