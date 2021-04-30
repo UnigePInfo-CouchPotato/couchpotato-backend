@@ -10,6 +10,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.LinkedHashMap;
+import java.util.Random;
 
 @ApplicationScoped
 @Path("/user-management")
@@ -59,8 +60,9 @@ public class UserManagementRestService {
         }
 
         //Everything is ok
+        Random rand = new Random();
         successMessage.put("data", new LinkedHashMap<String, String>(){{
-            put("id", "3");
+            put("id", String.valueOf(rand.nextInt(100)));
             put("message", "registration ok");
         }});
         return Response.status(201).entity(successMessage).build();
