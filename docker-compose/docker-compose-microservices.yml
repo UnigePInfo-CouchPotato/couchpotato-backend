@@ -1,0 +1,81 @@
+version: "3.5"
+
+services:
+
+  usermanagement-database:
+    image: postgres:10
+    container_name: usermanagement-database
+    hostname: usermanagement-database
+    networks:
+     - backend-network
+    environment:
+      POSTGRES_USER: usrmgmt
+      POSTGRES_PASSWORD: usrmgmt
+      POSTGRES_DB: usermanagement
+    healthcheck:
+      # command to test if mongo db is up (will tell if container is "healthy")
+      test: ["CMD", "pg_isready", "-U", "usrmgmt", "-d", "usermanagement"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+#      -  map server's local db to container's db, for persistence
+      - pgdata-usrmgmt:/var/lib/postgresql/data
+      - ./test-data/usermanagement/:/docker-entrypoint-initdb.d/
+    restart: on-failure
+    stdin_open: true
+    tty: true
+
+
+  #The counterparty service provides counterparty data, it is also the single version of truth for these data
+  usermanagement-service:
+    container_name: usermanagement-service
+    # image: faysal's dockerhub/image:tag
+#    image: faysalsaber/user-management-service:latest
+    build: #points to the location of the dockerfile
+      ../UserManagement/
+    hostname: usermanagement-service
+    environment:
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_CONNECTION_DASH_URL: "jdbc:postgresql://usermanagement-database:5432/usermanagement"
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_DRIVER_DASH_NAME: 'postgresql'
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_USER_DASH_NAME: 'usrmgmt'
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_PASSWORD: 'usrmgmt'
+    networks:
+      - backend-network
+    ports: #specify container port mapping
+      - "8080:28080"
+    depends_on:
+       - usermanagement-database
+
+#  instrument-database:
+#    image: postgres:10
+#    container_name: usermanagement-database
+#    hostname: instrument-database
+#    networks:
+#     - backend-network
+#    environment:
+#      POSTGRES_USER: inst
+#      POSTGRES_PASSWORD: inst
+#      POSTGRES_DB: instrument
+#    healthcheck:
+#      test: ["CMD", "pg_isready", "-U", "inst", "-d", "instrument"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+#    volumes:
+#      - pgdata-inst:/var/lib/postgresql/data
+#      - ./test-data/instruments/:/docker-entrypoint-initdb.d/
+#    restart: on-failure
+#    stdin_open: true
+#    tty: true
+
+
+volumes:
+   pgdata-usrmgmt:
+#   test-data/usermanagement/:
+#   pgdata-inst:
+
+
+networks:
+  backend-network:
+    driver: bridge
