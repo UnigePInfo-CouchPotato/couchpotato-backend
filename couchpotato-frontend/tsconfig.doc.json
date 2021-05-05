@@ -1,0 +1,29 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": []
+  },
+  "files": [
+    "src/app/app-routing.module.ts",
+    "src/app/app.component.ts",
+    "src/app/app.module.ts",
+    "src/app/components/authentication/authentication.component.ts",
+    "src/app/components/authentication/login/login.component.ts",
+    "src/app/components/authentication/register/register.component.ts",
+    "src/app/components/common/main-body/main-body.component.ts",
+    "src/app/components/home/home.component.ts",
+    "src/app/components/movie-display/movie-display.component.ts",
+    "src/app/interfaces/languages.ts",
+    "src/app/services/authentication-guard.service.ts",
+    "src/app/services/authentication.service.ts",
+    "src/app/services/imdb-query.service.ts",
+    "src/app/utils/validators.ts",
+    "src/main.ts",
+    "src/polyfills.ts",
+  ],
+  "include": [
+    "src/**/*.d.ts"
+  ]
+}
