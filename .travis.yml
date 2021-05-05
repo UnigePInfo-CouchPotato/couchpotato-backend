@@ -22,6 +22,7 @@ jobs:
     script:
     - cd couchpotato-frontend
     - pwd
+    - node -v
     - npm -v
     - npm install
     - npm update
@@ -35,6 +36,7 @@ before_install:
 - echo -e "Host 129.194.10.127\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 - ssh-add ./deploy_key
 - ssh -i ./deploy_key saberfa0@129.194.10.127 pwd
+- nvm install v$NODE_VERSION
 
 
 
