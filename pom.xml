@@ -11,7 +11,7 @@
     <modules>
         <module>Authentication</module>
         <module>UserManagement</module>
-        <module>Microservice3</module>
+        <module>Recommendation</module>
     </modules>
 
     <properties>
