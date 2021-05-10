@@ -47,28 +47,19 @@ services:
     depends_on:
        - usermanagement-database
 
-#  instrument-database:
-#    image: postgres:10
-#    container_name: usermanagement-database
-#    hostname: instrument-database
-#    networks:
-#     - backend-network
-#    environment:
-#      POSTGRES_USER: inst
-#      POSTGRES_PASSWORD: inst
-#      POSTGRES_DB: instrument
-#    healthcheck:
-#      test: ["CMD", "pg_isready", "-U", "inst", "-d", "instrument"]
-#      interval: 30s
-#      timeout: 30s
-#      retries: 3
-#    volumes:
-#      - pgdata-inst:/var/lib/postgresql/data
-#      - ./test-data/instruments/:/docker-entrypoint-initdb.d/
-#    restart: on-failure
-#    stdin_open: true
-#    tty: true
 
+  recommendation-service:
+    container_name: recommendation-service
+    # image: faysal's dockerhub/image:tag
+    #    image: faysalsaber/user-management-service:latest
+    build: #points to the location of the dockerfile
+      ../Recommendation/
+    hostname: recommendation-service
+
+    networks:
+      - backend-network
+    ports: #specify container port mapping
+      - "12080:28080"
 
 volumes:
    pgdata-usrmgmt:
