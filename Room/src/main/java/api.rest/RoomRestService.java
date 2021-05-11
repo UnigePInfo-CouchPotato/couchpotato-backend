@@ -58,7 +58,14 @@ public class RoomRestService {
     @Path("/test")
     @Produces(MediaType.TEXT_PLAIN)
     public String sayPlainTextHello() {
-        return "Welcome to the rooms service";
+        return "Welcome to the room service";
+    }
+
+    @GET
+    @Path("/user-management")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getHelloJersey() {
+        return roomService.getHelloJersey();
     }
 
 }

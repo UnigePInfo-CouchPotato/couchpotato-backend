@@ -87,6 +87,7 @@ services:
       - "9000:28080"
     depends_on:
       - room-database
+      - usermanagement-service
 #  instrument-database:
 #    image: postgres:10
 #    container_name: usermanagement-database

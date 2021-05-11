@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface RoomService {
 
+	String getHelloJersey();
 	List<Room> getAll();
 	Room get(int roomId);
 	Long count();

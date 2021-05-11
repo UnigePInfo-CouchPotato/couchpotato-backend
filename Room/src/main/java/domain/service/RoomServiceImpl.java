@@ -9,6 +9,11 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.transaction.Transactional;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @ApplicationScoped
@@ -28,8 +33,23 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
+	public String getHelloJersey() {
+    	log.info("Get Hello Jersey from user management");
+    	final String url = "http://usermanagement-service:28080/user-management";
+    	Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(url);
+		Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
+
+		if (response.getStatus() != 200) {
+			return "Failed : HTTP error code : " + response.getStatus();
+		}
+
+		return response.readEntity(String.class);
+	}
+
+	@Override
 	public List<Room> getAll() {
-		log.info("retrieve all rooms");
+		log.info("Retrieve all rooms");
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Room> criteria = builder.createQuery( Room.class );
 		criteria.from(Room.class);
