@@ -26,6 +26,30 @@ services:
     stdin_open: true
     tty: true
 
+  room-database:
+    image: postgres:10
+    container_name: room-database
+    hostname: room-database
+    networks:
+      - backend-network
+    environment:
+      POSTGRES_USER: room
+      POSTGRES_PASSWORD: room
+      POSTGRES_DB: room
+    healthcheck:
+      # command to test if mongo db is up (will tell if container is "healthy")
+      test: ["CMD", "pg_isready", "-U", "room", "-d", "room"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+      #      -  map server's local db to container's db, for persistence
+      - pgdata-room:/var/lib/postgresql/data
+      - ./test-data/room/:/docker-entrypoint-initdb.d/
+    restart: on-failure
+    stdin_open: true
+    tty: true
+
 
   #The counterparty service provides counterparty data, it is also the single version of truth for these data
   usermanagement-service:
@@ -47,6 +71,22 @@ services:
     depends_on:
        - usermanagement-database
 
+  room-service:
+    container_name: room-service
+    build: #points to the location of the dockerfile
+      ../Room/
+    hostname: room-service
+    environment:
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_ROOMDS_CONNECTION_DASH_URL: "jdbc:postgresql://room-database:5432/room"
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_ROOMDS_DRIVER_DASH_NAME: 'postgresql'
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_ROOMDS_USER_DASH_NAME: 'room'
+      THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_ROOMDS_PASSWORD: 'room'
+    networks:
+      - backend-network
+    ports: #specify container port mapping
+      - "9000:28080"
+    depends_on:
+      - room-database
 #  instrument-database:
 #    image: postgres:10
 #    container_name: usermanagement-database
@@ -73,6 +113,9 @@ services:
 volumes:
    pgdata-usrmgmt:
 #   test-data/usermanagement/:
+#   pgdata-inst:
+   pgdata-room:
+#   test-data/room/:
 #   pgdata-inst:
 
 
