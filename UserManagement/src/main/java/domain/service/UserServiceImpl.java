@@ -6,8 +6,11 @@ import lombok.extern.java.Log;
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.util.List;
 
@@ -18,9 +21,7 @@ public class UserServiceImpl implements UserService {
     @PersistenceContext(unitName = "UserManagementPU")
     private EntityManager em;
 
-    public UserServiceImpl(){
-
-	}
+    public UserServiceImpl(){ }
 
 	public UserServiceImpl(EntityManager em){
     	this();
@@ -29,11 +30,18 @@ public class UserServiceImpl implements UserService {
     
 	@Override
 	public List<Users> getAll() {
-		log.info("retrieve all users");
-		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<Users> criteria = builder.createQuery( Users.class );
-		criteria.from(Users.class);
-		return em.createQuery( criteria ).getResultList();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Users> cq = cb.createQuery(Users.class);
+		Root<Users> rootEntry = cq.from(Users.class);
+		CriteriaQuery<Users> all = cq.select(rootEntry);
+
+		TypedQuery<Users> allQuery = em.createQuery(all);
+		return allQuery.getResultList();
+
+//		CriteriaBuilder qb = em.getCriteriaBuilder();
+//		CriteriaQuery<Long> cq = qb.createQuery(Long.class);
+//		cq.select(qb.count(cq.from(Users.class)));
+//		return em.createQuery(cq).getSingleResult();
 	}
 	
 	@Override
@@ -70,5 +78,13 @@ public class UserServiceImpl implements UserService {
 		Users u = em.find(Users.class, id);
 		return (u!=null);
 	}
+
+
+	@Override
+	@Transactional
+	public void create(Users user) {
+    	em.persist(user);
+	}
+
 
 }

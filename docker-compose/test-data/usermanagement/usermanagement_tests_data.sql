@@ -14,7 +14,8 @@ create table Users (
         registrationDate timestamp,
         primary key (id)
 );
--- INSERT INTO Users (id, username, email, saltedPwd, registrationDate) values ( USERS_SEQ.nextval, 'azeem', 'azeem@gmail.com', 'azeemarshad', PARSEDATETIME('17-09-2017','yyyy-dd-mm','en') );
+-- INSERT INTO Users (id, username, email, saltedPwd, registrationDate) values ( USERS_SEQ.nextval, 'azejem1', 'azeem@gmail.com', 'azeemarshad', PARSEDATETIME('17-09-2017','yyyy-dd-mm','en') );
+
 INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 1, 'azeem', 'azeem@gmail.com', 'azeemarshad', CURRENT_TIMESTAMP );
 INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 2, 'alice', 'alice@hotmail.com', 'alicesalty', CURRENT_TIMESTAMP );
 INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 3, 'bob', 'bob@gmail.com', 'bobsalty', CURRENT_TIMESTAMP );
