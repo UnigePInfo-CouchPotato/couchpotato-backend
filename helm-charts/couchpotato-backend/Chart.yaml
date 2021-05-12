@@ -12,6 +12,4 @@ dependencies:
     alias: usermanagement-database
   - name: nginx-ingress 
     version: 1.27.0
-    repository: https://kubernetes-charts.storage.googleapis.com  
-
-
+    repository: https://kubernetes-charts.storage.googleapis.com

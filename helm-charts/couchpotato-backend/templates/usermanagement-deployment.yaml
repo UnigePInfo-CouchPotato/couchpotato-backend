@@ -34,7 +34,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: docker-compose_usermanagement-service
+          image: {{ .Values.image.repository }}usermanagement-service:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: THORNTAIL_KAFKA_DASH_CONFIGURATION_HOST
@@ -46,25 +46,13 @@ spec:
             - name: THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_DRIVER_DASH_NAME
               value: "postgresql"   
             - name: THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_USER_DASH_NAME
-              value: "usrmgmt"
+              value: "usermanagement"
             - name: THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_PASSWORD
-              value: "usrmgmt"              
+              value: "usermanagement"              
           ports:
             - name: http
               containerPort: 28080
-              protocol: TCP  
-          livenessProbe:
-            httpGet:
-              path: /user-management/count
-              port: http
-            initialDelaySeconds: 60
-            periodSeconds: 20                            
-          readinessProbe:
-            httpGet:
-              path: /user-management/count
-              port: http
-            initialDelaySeconds: 60
-            periodSeconds: 20                              
+              protocol: TCP                         
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
