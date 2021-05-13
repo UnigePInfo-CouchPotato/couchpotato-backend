@@ -1,17 +1,17 @@
 package api.rest;
 
-//import domain.service.UserService;
+import java.util.List;
+
+
+import domain.service.RecommendationService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.LinkedHashMap;
-import java.util.Random;
-
 
 
 @ApplicationScoped
@@ -23,15 +23,16 @@ import java.util.Random;
 
 public class RecommendationRestService {
 
-    // http://localhost:8080/recommendation/test
+    // http://localhost:12080/recommendation/
+    @Inject
+    private RecommendationService recommendationService;
 
     @GET
     @Path("/test")
-    @Produces(MediaType.TEXT_HTML)
-    public String test_html() {
-        return "<html><body> christina</body></html>";
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getAllGenres() {
+        return recommendationService.getAllGenres();
     }
-
 
 }
 
