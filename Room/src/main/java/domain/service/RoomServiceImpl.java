@@ -1,9 +1,14 @@
 package domain.service;
 
 import domain.model.Room;
+import domain.model.Room_User;
+import domain.model.Users;
 import lombok.extern.java.Log;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -24,6 +29,9 @@ public class RoomServiceImpl implements RoomService {
     @PersistenceContext(unitName = "RoomPU")
     private EntityManager em;
 
+    @Inject
+	private RoomUserService roomUserService;
+
     public RoomServiceImpl(){
 
 	}
@@ -33,13 +41,10 @@ public class RoomServiceImpl implements RoomService {
     	this.em = em;
 	}
 
-	@Override
-	public String getWelcomeMessage() {
-    	log.info("Get welcome message from user management");
-    	final String url = "http://usermanagement-service:28080/users";
-    	Client client = ClientBuilder.newClient();
+	private String makeRequest(String url, String mediaType) {
+		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
-		Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
+		Response response = webTarget.request(mediaType).get();
 
 		if (response.getStatus() != 200) {
 			return "Failed : HTTP error code : " + response.getStatus();
@@ -49,18 +54,69 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public String getRoomAdmin(int userId) {
+	public String getWelcomeMessage() {
+    	log.info("Get welcome message from user management");
+    	final String url = "http://usermanagement-service:28080/users";
+    	return makeRequest(url, MediaType.TEXT_PLAIN);
+	}
+
+	@Override
+	public Users getRoomAdmin(int userId) {
 		log.info("Get information on room administrator from user management");
 		final String url = "http://usermanagement-service:28080/users/" + userId;
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
 		Response response = webTarget.request(MediaType.APPLICATION_JSON).get();
+		return response.readEntity(Users.class);
+	}
 
-		if (response.getStatus() != 200) {
-			return "Failed : HTTP error code : " + response.getStatus();
+	private ArrayList<Integer> getAllUsersIds() {
+		log.info("Get information on room administrator from user management");
+		final String url = "http://usermanagement-service:28080/users/all";
+		String users = makeRequest(url, MediaType.APPLICATION_JSON);
+		ArrayList<Integer> usersIds = new ArrayList<>();
+
+		final JSONArray jsonArray = new JSONArray(users);
+		final int length = jsonArray.length();
+
+		for (int i = 0; i < length; i++) {
+			final JSONObject jsonObject = jsonArray.getJSONObject(i);
+			final int id = jsonObject.getInt("id");
+			usersIds.add(id);
 		}
 
-		return response.readEntity(String.class);
+		return usersIds;
+	}
+
+	@Override
+	public String getRoomUsers(int roomId) {
+		log.info("Get all users in a room");
+		final ArrayList<Integer> usersIds = getAllUsersIds();
+		ArrayList<Integer> validUsersIds = new ArrayList<>();
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (Integer usersId : usersIds) {
+			Room_User roomUser = new Room_User();
+			roomUser.setUserId(usersId);
+			roomUser.setRoomId(roomId);
+			if (roomUserService.exists(roomUser)) {
+				validUsersIds.add(usersId);
+			}
+		}
+
+		stringBuilder.append("[");
+		int count = 0;
+		for (Integer validUserId : validUsersIds) {
+			final String url = "http://usermanagement-service:28080/users/" + validUserId;
+			String str = makeRequest(url, MediaType.APPLICATION_JSON);
+			stringBuilder.append(str);
+			count++;
+			if (count < validUsersIds.size())
+				stringBuilder.append(",");
+		}
+		stringBuilder.append("]");
+
+		return stringBuilder.toString();
 	}
 
 	@Override

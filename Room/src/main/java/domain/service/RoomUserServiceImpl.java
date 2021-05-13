@@ -27,4 +27,10 @@ public class RoomUserServiceImpl implements RoomUserService {
     public Room_User get(Room_User room_user) {
         return em.find(Room_User.class, room_user);
     }
+
+    @Override
+    public boolean exists(Room_User room_user) {
+        Room_User r = em.find(Room_User.class, room_user);
+        return (r != null);
+    }
 }
