@@ -14,6 +14,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
@@ -33,12 +34,27 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public String getHelloJersey() {
-    	log.info("Get Hello Jersey from user management");
-    	final String url = "http://usermanagement-service:28080/user-management";
+	public String getWelcomeMessage() {
+    	log.info("Get welcome message from user management");
+    	final String url = "http://usermanagement-service:28080/users";
     	Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
 		Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
+
+		if (response.getStatus() != 200) {
+			return "Failed : HTTP error code : " + response.getStatus();
+		}
+
+		return response.readEntity(String.class);
+	}
+
+	@Override
+	public String getRoomAdmin(int userId) {
+		log.info("Get information on room administrator from user management");
+		final String url = "http://usermanagement-service:28080/users/" + userId;
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(url);
+		Response response = webTarget.request(MediaType.APPLICATION_JSON).get();
 
 		if (response.getStatus() != 200) {
 			return "Failed : HTTP error code : " + response.getStatus();
