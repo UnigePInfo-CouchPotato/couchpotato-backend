@@ -78,7 +78,7 @@ public class RoomRestService {
     public Response getRoomAdmin(@PathParam("roomId") int roomId) {
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = "\"error\":\"Room does not exist\"";
+            String errorMessage = String.format("\"error\":\"Room %d does not exist\"", roomId);
             return Response.status(404).entity(errorMessage).build();
         }
 
