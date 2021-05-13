@@ -16,7 +16,39 @@ public class RecommendationServiceImpl implements RecommendationService {
 
 
     public String getAllGenres(){
-        String url = "https://api.themoviedb.org/3/genre/movie/list?api_key=3aacfef6a62a872d2a4717b9b6cd5283&language=en-US";
+        String url = "https://api.themoviedb.org/3/genre/movie/list?api_key=b3299a1aa5ae43a9ae35cb544503117f";
+
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget = client.target(url);
+
+        Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
+
+        if (response.getStatus() != 200) {
+            return "Failed : HTTP error code : " + response.getStatus();
+        }
+
+        return response.readEntity(String.class);
+
+    }
+
+    public String getAllFilmSelected(String idGenres){
+        String url = "https://api.themoviedb.org/3/discover/movie?api_key=b3299a1aa5ae43a9ae35cb544503117f&language=en-US&include_adult=false&include_video=false&page=1&with_genres="+idGenres;
+
+        Client client = ClientBuilder.newClient();
+        WebTarget webTarget = client.target(url);
+
+        Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
+
+        if (response.getStatus() != 200) {
+            return "Failed : HTTP error code : " + response.getStatus();
+        }
+
+        return response.readEntity(String.class);
+
+    }
+
+    public String getAllDetail(String detail){
+        String url = "https://api.themoviedb.org/3/movie/"+detail+"?api_key=b3299a1aa5ae43a9ae35cb544503117f";
 
         Client client = ClientBuilder.newClient();
         WebTarget webTarget = client.target(url);
