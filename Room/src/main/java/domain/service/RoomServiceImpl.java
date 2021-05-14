@@ -70,6 +70,12 @@ public class RoomServiceImpl implements RoomService {
 		return response.readEntity(Users.class);
 	}
 
+	@Override
+	public boolean isRoomAdmin(int roomId, int userId) {
+		Room room = get(roomId);
+		return room.getRoomAdminId() == userId;
+	}
+
 	private ArrayList<Integer> getAllUsersIds() {
 		log.info("Get information on room administrator from user management");
 		final String url = "http://usermanagement-service:28080/users/all";

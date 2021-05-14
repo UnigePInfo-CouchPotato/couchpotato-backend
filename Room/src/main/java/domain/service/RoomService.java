@@ -16,5 +16,6 @@ public interface RoomService {
 	void update(Room room);
 	boolean exists(int roomId);
 	Users getRoomAdmin(int userId);
+	boolean isRoomAdmin(int roomId, int userId);
 
 }

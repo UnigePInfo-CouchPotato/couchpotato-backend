@@ -109,6 +109,20 @@ public class RoomRestService {
     }
 
     @GET
+    @Path("{roomId}/is-room-admin/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get all users in a specific room")
+    public Response isRoomAdmin(@PathParam("roomId") int roomId, @PathParam("userId") int userId) {
+        //Check if room exists
+        if (!roomService.exists(roomId)) {
+            String errorMessage = String.format("\"error\":\"Room %d does not exist\"", roomId);
+            return Response.status(404).entity("{" + errorMessage + "}").build();
+        }
+
+        return Response.status(200).entity(roomService.isRoomAdmin(roomId, userId)).build();
+    }
+
+    @GET
     @Path("{roomId}/admin")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the admin of a specific room")
