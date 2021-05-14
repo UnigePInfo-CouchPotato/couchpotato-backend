@@ -93,38 +93,18 @@ public class RoomServiceImpl implements RoomService {
 		return createdRoomId;
 	}
 
-	private ArrayList<Integer> getAllUsersIds() {
-		log.info("Get information on room administrator from user management");
-		final String url = "http://usermanagement-service:28080/users/all";
-		String users = makeRequest(url, MediaType.APPLICATION_JSON);
-		ArrayList<Integer> usersIds = new ArrayList<>();
-
-		final JSONArray jsonArray = new JSONArray(users);
-		final int length = jsonArray.length();
-
-		for (int i = 0; i < length; i++) {
-			final JSONObject jsonObject = jsonArray.getJSONObject(i);
-			final int id = jsonObject.getInt("id");
-			usersIds.add(id);
-		}
-
-		return usersIds;
-	}
-
 	@Override
 	public String getRoomUsers(int roomId) {
 		log.info("Get all users in a room");
-		final ArrayList<Integer> usersIds = getAllUsersIds();
 		ArrayList<Integer> validUsersIds = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
+		List<Room_User> room_users = roomUserService.getAll();
 
-		for (Integer usersId : usersIds) {
-			Room_User roomUser = new Room_User();
-			roomUser.setUserId(usersId);
-			roomUser.setRoomId(roomId);
-			if (roomUserService.exists(roomUser)) {
-				validUsersIds.add(usersId);
-			}
+		for (Room_User room_user : room_users) {
+			if (!(room_user.getRoomId() == roomId))
+				continue;
+
+			validUsersIds.add(room_user.getUserId());
 		}
 
 		stringBuilder.append("[");
