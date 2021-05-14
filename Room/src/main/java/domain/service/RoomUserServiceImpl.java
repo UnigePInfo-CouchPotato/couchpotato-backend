@@ -1,12 +1,16 @@
 package domain.service;
 
+import domain.model.Room;
 import lombok.extern.java.Log;
 
 import domain.model.Room_User;
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.transaction.Transactional;
+import java.util.List;
 
 @ApplicationScoped
 @Log
@@ -48,5 +52,14 @@ public class RoomUserServiceImpl implements RoomUserService {
         room_user.setRoomId(roomId);
         room_user.setUserId(userId);
         em.persist(room_user);
+    }
+
+    @Override
+    public List<Room_User> getAll() {
+        log.info("Retrieve all room_users");
+        CriteriaBuilder builder = em.getCriteriaBuilder();
+        CriteriaQuery<Room_User> criteria = builder.createQuery( Room_User.class );
+        criteria.from(Room_User.class);
+        return em.createQuery( criteria ).getResultList();
     }
 }

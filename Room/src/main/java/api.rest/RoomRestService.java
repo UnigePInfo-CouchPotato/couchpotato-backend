@@ -34,8 +34,16 @@ public class RoomRestService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get all rooms")
-    public List<Room> getAll() {
+    public List<Room> getAllRooms() {
         return roomService.getAll();
+    }
+
+    @GET
+    @Path("/room-users")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get all room_users")
+    public List<Room_User> getAllRoomUsers() {
+        return roomUserService.getAll();
     }
 
     @GET
