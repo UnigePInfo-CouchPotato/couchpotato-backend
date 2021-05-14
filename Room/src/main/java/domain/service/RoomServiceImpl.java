@@ -29,6 +29,8 @@ public class RoomServiceImpl implements RoomService {
     @PersistenceContext(unitName = "RoomPU")
     private EntityManager em;
 
+    private static int counter = 0;
+
     @Inject
 	private RoomUserService roomUserService;
 
@@ -74,6 +76,21 @@ public class RoomServiceImpl implements RoomService {
 	public boolean isRoomAdmin(int roomId, int userId) {
 		Room room = get(roomId);
 		return room.getRoomAdminId() == userId;
+	}
+
+	@Override
+	@Transactional
+	public int createRoom(int userId) {
+    	log.info("Create a room, set the administrator and add the user");
+		Room room = new Room();
+		room.setRoomAdminId(userId);
+		room.setRoomId(counter);
+		em.persist(room);
+		em.flush();
+		counter++;
+		int createdRoomId = room.getRoomId();
+		roomUserService.create(createdRoomId, userId);
+		return createdRoomId;
 	}
 
 	private ArrayList<Integer> getAllUsersIds() {

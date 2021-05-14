@@ -2,9 +2,7 @@ package domain.model;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Data
@@ -17,6 +15,6 @@ public class Room {
 	@NotNull
 	private int roomAdminId;
 	@NotNull
-	private boolean roomClosed;
+	private boolean roomClosed = false;
 
 }

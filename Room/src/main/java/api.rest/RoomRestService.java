@@ -111,7 +111,7 @@ public class RoomRestService {
     @GET
     @Path("{roomId}/is-room-admin/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get all users in a specific room")
+    @ApiOperation(value = "Check if user is admin of a specific room")
     public Response isRoomAdmin(@PathParam("roomId") int roomId, @PathParam("userId") int userId) {
         //Check if room exists
         if (!roomService.exists(roomId)) {
@@ -136,6 +136,17 @@ public class RoomRestService {
         Room room = roomService.get(roomId);
         int adminId = room.getRoomAdminId();
         return Response.status(200).entity(roomService.getRoomAdmin(adminId)).build();
+    }
+
+    @GET
+    @Path("create/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a room")
+    public Response createRoom(@PathParam("userId") int userId) {
+        //Create a room
+        int roomId = roomService.createRoom(userId);
+        String successMessage = "{" + "\"data\":" + "{" + "\"roomId\":" + roomId + "}" + "}";
+        return Response.status(200).entity(successMessage).build();
     }
 
 }

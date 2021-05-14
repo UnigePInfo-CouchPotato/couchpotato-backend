@@ -17,6 +17,7 @@ public class Room_User implements Serializable {
 	@Id
 	private int userId;
 	@NotNull
-	private Date creationDate;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date creationDate = new Date();
 
 }
