@@ -98,6 +98,22 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
+	@Transactional
+	public void deleteRoom(int roomId) {
+    	//Delete room
+    	Room room = get(roomId);
+    	if (room != null)
+    		em.remove(room);
+
+    	//Delete all room_user records associated
+		List<Room_User> room_users = roomUserService.getAll();
+    	for (Room_User room_user : room_users) {
+    		if (room_user.getRoomId() == roomId)
+    			em.remove(room_user);
+		}
+	}
+
+	@Override
 	public boolean isUserInRoom(int roomId, int userId) {
 		log.info("Checks if user is already in the room");
 		return roomUserService.exists(roomId, userId);

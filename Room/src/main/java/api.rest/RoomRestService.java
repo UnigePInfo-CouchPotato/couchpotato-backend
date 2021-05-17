@@ -158,6 +158,23 @@ public class RoomRestService {
     }
 
     @GET
+    @Path("delete/{roomId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a room")
+    public Response deleteRoom(@PathParam("roomId") int roomId) {
+        //Check if room exists
+        if (!roomService.exists(roomId)) {
+            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            return Response.status(404).entity(errorMessage).build();
+        }
+
+        //Delete a room
+        roomService.deleteRoom(roomId);
+        String successMessage = "{" + String.format("\"message\":\"Room %d has been deleted successfully\"", roomId) + "}";
+        return Response.status(201).entity(successMessage).build();
+    }
+
+    @GET
     @Path("/{roomId}/join/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Join a room")

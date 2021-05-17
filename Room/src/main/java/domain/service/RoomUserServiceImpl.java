@@ -1,6 +1,5 @@
 package domain.service;
 
-import domain.model.Room;
 import lombok.extern.java.Log;
 
 import domain.model.Room_User;
