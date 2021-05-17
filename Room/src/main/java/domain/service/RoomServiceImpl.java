@@ -4,8 +4,6 @@ import domain.model.Room;
 import domain.model.Room_User;
 import domain.model.Users;
 import lombok.extern.java.Log;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -91,6 +89,18 @@ public class RoomServiceImpl implements RoomService {
 		int createdRoomId = room.getRoomId();
 		roomUserService.create(createdRoomId, userId);
 		return createdRoomId;
+	}
+
+	@Override
+	public void joinRoom(int roomId, int userId) {
+    	log.info("Add user to room");
+		roomUserService.create(roomId, userId);
+	}
+
+	@Override
+	public boolean isUserInRoom(int roomId, int userId) {
+		log.info("Checks if user is already in the room");
+		return roomUserService.exists(roomId, userId);
 	}
 
 	@Override

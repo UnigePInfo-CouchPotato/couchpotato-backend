@@ -40,6 +40,15 @@ public class RoomUserServiceImpl implements RoomUserService {
     }
 
     @Override
+    public boolean exists(int roomId, int userId) {
+        Room_User room_user = new Room_User();
+        room_user.setRoomId(roomId);
+        room_user.setUserId(userId);
+        Room_User r = em.find(Room_User.class, room_user);
+        return (r != null);
+    }
+
+    @Override
     @Transactional
     public void create(Room_User room_user) {
         em.persist(room_user);

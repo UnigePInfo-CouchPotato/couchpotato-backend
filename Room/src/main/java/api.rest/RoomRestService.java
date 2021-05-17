@@ -57,8 +57,8 @@ public class RoomRestService {
 
         //Check if room_user exists
         if (!roomUserService.exists(room_user)) {
-            String errorMessage = "\"error\":\"This room_user does not exist\"";
-            return Response.status(404).entity("{" + errorMessage + "}").build();
+            String errorMessage = "{\"error\":\"This room_user does not exist\"}";
+            return Response.status(404).entity(errorMessage).build();
         }
 
         return Response.status(200).entity(roomUserService.get(room_user)).build();
@@ -109,8 +109,8 @@ public class RoomRestService {
     public Response getRoomUsers(@PathParam("roomId") int roomId) {
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = String.format("\"error\":\"Room %d does not exist\"", roomId);
-            return Response.status(404).entity("{" + errorMessage + "}").build();
+            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            return Response.status(404).entity(errorMessage).build();
         }
 
         return Response.status(200).entity(roomService.getRoomUsers(roomId)).build();
@@ -123,8 +123,8 @@ public class RoomRestService {
     public Response isRoomAdmin(@PathParam("roomId") int roomId, @PathParam("userId") int userId) {
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = String.format("\"error\":\"Room %d does not exist\"", roomId);
-            return Response.status(404).entity("{" + errorMessage + "}").build();
+            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            return Response.status(404).entity(errorMessage).build();
         }
 
         return Response.status(200).entity(roomService.isRoomAdmin(roomId, userId)).build();
@@ -137,8 +137,8 @@ public class RoomRestService {
     public Response getRoomAdmin(@PathParam("roomId") int roomId) {
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = String.format("\"error\":\"Room %d does not exist\"", roomId);
-            return Response.status(404).entity("{" + errorMessage + "}").build();
+            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            return Response.status(404).entity(errorMessage).build();
         }
 
         Room room = roomService.get(roomId);
@@ -154,7 +154,30 @@ public class RoomRestService {
         //Create a room
         int roomId = roomService.createRoom(userId);
         String successMessage = "{" + "\"data\":" + "{" + "\"roomId\":" + roomId + "}" + "}";
-        return Response.status(200).entity(successMessage).build();
+        return Response.status(201).entity(successMessage).build();
+    }
+
+    @GET
+    @Path("/{roomId}/join/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Join a room")
+    public Response joinRoom(@PathParam("roomId") int roomId, @PathParam("userId") int userId) {
+        //Check if room exists
+        if (!roomService.exists(roomId)) {
+            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            return Response.status(404).entity(errorMessage).build();
+        }
+
+        //Check if user is already in the room
+        if(roomService.isUserInRoom(roomId, userId)) {
+            String errorMessage = "{" + String.format("\"error\":\"User %d is already in this room\"", userId) + "}";
+            return Response.status(409).entity(errorMessage).build();
+        }
+
+        //Add the user to a room
+        roomService.joinRoom(roomId, userId);
+        String successMessage = "{" + "\"success\":" + true + "}";
+        return Response.status(201).entity(successMessage).build();
     }
 
 }
