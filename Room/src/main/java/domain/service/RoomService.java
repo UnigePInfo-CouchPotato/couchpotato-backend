@@ -22,5 +22,6 @@ public interface RoomService {
 	void deleteRoom(int roomId);
 	boolean closeRoom(int roomId);
 	boolean isUserIdInvalid(int userId);
+	boolean isRoomClosed(int roomId);
 
 }

@@ -138,6 +138,13 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
+	public boolean isRoomClosed(int roomId) {
+		log.info("Check if room is closed");
+		Room room = get(roomId);
+		return room.isRoomClosed();
+	}
+
+	@Override
 	public boolean isUserInRoom(int roomId, int userId) {
 		log.info("Checks if user is already in the room");
 		return roomUserService.exists(roomId, userId);
