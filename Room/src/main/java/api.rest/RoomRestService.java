@@ -121,6 +121,12 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if user is admin of a specific room")
     public Response isRoomAdmin(@PathParam("roomId") int roomId, @PathParam("userId") int userId) {
+        //Check if user id is valid
+        if (roomService.isUserIdInvalid(userId)) {
+            String errorMessage = "{" + String.format("\"error\":\"User %d does not exist\"", userId) + "}";
+            return Response.status(404).entity(errorMessage).build();
+        }
+
         //Check if room exists
         if (!roomService.exists(roomId)) {
             String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
@@ -151,6 +157,12 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a room")
     public Response createRoom(@PathParam("userId") int userId) {
+        //Check if user id is valid
+        if (roomService.isUserIdInvalid(userId)) {
+            String errorMessage = "{" + String.format("\"error\":\"User %d does not exist\"", userId) + "}";
+            return Response.status(404).entity(errorMessage).build();
+        }
+
         //Create a room
         int roomId = roomService.createRoom(userId);
         String successMessage = "{" + "\"data\":" + "{" + "\"roomId\":" + roomId + "}" + "}";
@@ -160,7 +172,7 @@ public class RoomRestService {
     @GET
     @Path("delete/{roomId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a room")
+    @ApiOperation(value = "Delete a room")
     public Response deleteRoom(@PathParam("roomId") int roomId) {
         //Check if room exists
         if (!roomService.exists(roomId)) {
@@ -170,8 +182,29 @@ public class RoomRestService {
 
         //Delete a room
         roomService.deleteRoom(roomId);
-        String successMessage = "{" + String.format("\"message\":\"Room %d has been deleted successfully\"", roomId) + "}";
+        String successMessage = "{" + String.format("\"data\":\"Room %d has been deleted successfully\"", roomId) + "}";
         return Response.status(201).entity(successMessage).build();
+    }
+
+    @GET
+    @Path("close/{roomId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Close a room")
+    public Response closeRoom(@PathParam("roomId") int roomId) {
+        //Check if room exists
+        if (!roomService.exists(roomId)) {
+            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            return Response.status(404).entity(errorMessage).build();
+        }
+
+        //Close the room
+        if (!roomService.closeRoom(roomId)) {
+            String successMessage = "{" + String.format("\"error\":\"Room %d is already closed\"", roomId) + "}";
+            return Response.status(200).entity(successMessage).build();
+        }
+
+        String successMessage = "{" + String.format("\"data\":\"Room %d has been closed\"", roomId) + "}";
+        return Response.status(200).entity(successMessage).build();
     }
 
     @GET
@@ -185,6 +218,12 @@ public class RoomRestService {
             return Response.status(404).entity(errorMessage).build();
         }
 
+        //Check if user id is valid
+        if (roomService.isUserIdInvalid(userId)) {
+            String errorMessage = "{" + String.format("\"error\":\"User %d does not exist\"", userId) + "}";
+            return Response.status(404).entity(errorMessage).build();
+        }
+
         //Check if user is already in the room
         if(roomService.isUserInRoom(roomId, userId)) {
             String errorMessage = "{" + String.format("\"error\":\"User %d is already in this room\"", userId) + "}";
@@ -193,7 +232,7 @@ public class RoomRestService {
 
         //Add the user to a room
         roomService.joinRoom(roomId, userId);
-        String successMessage = "{" + "\"success\":" + true + "}";
+        String successMessage = "{" + String.format("\"data\":\"User %d has joined the room %d successfully\"", userId, roomId) + "}";
         return Response.status(201).entity(successMessage).build();
     }
 

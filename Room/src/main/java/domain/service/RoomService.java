@@ -20,5 +20,7 @@ public interface RoomService {
 	int createRoom(int userId);
 	void joinRoom(int roomId, int userId);
 	void deleteRoom(int roomId);
+	boolean closeRoom(int roomId);
+	boolean isUserIdInvalid(int userId);
 
 }
