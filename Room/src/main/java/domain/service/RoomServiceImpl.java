@@ -72,6 +72,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public boolean isRoomAdmin(int roomId, int userId) {
+    	log.info("Check if user is the administrator of the room");
 		Room room = get(roomId);
 		return room.getRoomAdminId() == userId;
 	}
