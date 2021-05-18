@@ -114,7 +114,7 @@ public class RoomRestService {
         }
 
         String message = "{" + "\"data\":" + "{" + "\"exists\":" + roomService.exists(roomId) + "}" + "}";
-        return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+        return Response.status(Response.Status.OK).entity(message).build();
     }
 
     @GET
@@ -212,7 +212,7 @@ public class RoomRestService {
         //Close the room
         if (!roomService.closeRoom(roomId)) {
             String successMessage = "{" + String.format("\"error\":\"Room %d is already closed\"", roomId) + "}";
-            return Response.status(Response.Status.OK).entity(successMessage).build();
+            return Response.status(Response.Status.CONFLICT).entity(successMessage).build();
         }
 
         String successMessage = "{" + String.format("\"message\":\"Room %d has been closed successfully\"", roomId) + "}";
