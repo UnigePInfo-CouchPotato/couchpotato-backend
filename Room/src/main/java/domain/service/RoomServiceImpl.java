@@ -133,7 +133,7 @@ public class RoomServiceImpl implements RoomService {
     	log.info("Checking if the user id is valid");
 		final String url = "http://usermanagement-service:28080/users/exists/" + userId;
 		String response = makeRequest(url, MediaType.APPLICATION_JSON);
-		return Boolean.parseBoolean(response);
+		return !Boolean.parseBoolean(response);
 	}
 
 	@Override
