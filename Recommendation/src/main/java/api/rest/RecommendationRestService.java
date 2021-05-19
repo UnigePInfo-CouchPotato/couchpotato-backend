@@ -36,7 +36,7 @@ public class RecommendationRestService {
 
     //idGenres doit etre un integer dans un string
     //Get all horror and drama movies (id=27,18)
-    //selectGenres={27,18}
+    //selectGenres=27,18
     @GET
     @Path("/selectGenres={idGenres}")
     @Produces(MediaType.TEXT_PLAIN)

@@ -32,12 +32,12 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     public String getAllFilmSelected(String idGenres){
-        String url = "https://api.themoviedb.org/3/discover/movie?api_key=b3299a1aa5ae43a9ae35cb544503117f&language=en-US&include_adult=false&include_video=false&page=1&with_genres="+idGenres;
+        String url = "https://api.themoviedb.org/3/discover/movie?api_key=b3299a1aa5ae43a9ae35cb544503117f&language=en-US&sort_by=vote_average.desc&include_adult=false&include_video=false&page=1&with_genres="+idGenres+"&with_watch_monetization_types=flatrate";
 
         Client client = ClientBuilder.newClient();
         WebTarget webTarget = client.target(url);
 
-        Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
+        Response response = webTarget.request(MediaType.TEXT_PLAIN).header("result", 5).get();
 
         if (response.getStatus() != 200) {
             return "Failed : HTTP error code : " + response.getStatus();
