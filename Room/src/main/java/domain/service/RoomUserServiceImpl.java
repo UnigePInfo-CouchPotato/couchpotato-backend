@@ -34,7 +34,7 @@ public class RoomUserServiceImpl implements RoomUserService {
     }
 
     @Override
-    public Room_User get(int roomId, int userId) {
+    public Room_User get(String roomId, int userId) {
         log.info("Get a room_user");
         Room_User room_user = new Room_User();
         room_user.setRoomId(roomId);
@@ -50,7 +50,7 @@ public class RoomUserServiceImpl implements RoomUserService {
     }
 
     @Override
-    public boolean exists(int roomId, int userId) {
+    public boolean exists(String roomId, int userId) {
         log.info("Check if a room_user exists");
         Room_User room_user = new Room_User();
         room_user.setRoomId(roomId);
@@ -68,7 +68,7 @@ public class RoomUserServiceImpl implements RoomUserService {
 
     @Override
     @Transactional
-    public void create(int roomId, int userId) {
+    public void create(String roomId, int userId) {
         log.info("Create a room_user");
         Room_User room_user = new Room_User();
         room_user.setRoomId(roomId);
@@ -87,7 +87,7 @@ public class RoomUserServiceImpl implements RoomUserService {
 
     @Override
     @Transactional
-    public void setUserGenres(int roomId, int userId, String genres) {
+    public void setUserGenres(String roomId, int userId, String genres) {
         log.info("Set user genres in a room");
         Room_User room_user = get(roomId, userId);
         room_user.setGenres(genres);

@@ -19,6 +19,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @ApplicationScoped
 @Log
@@ -26,8 +28,6 @@ public class RoomServiceImpl implements RoomService {
 
     @PersistenceContext(unitName = "RoomPU")
     private EntityManager em;
-
-    private static int counter = 0;
 
     @Inject
 	private RoomUserService roomUserService;
@@ -39,6 +39,11 @@ public class RoomServiceImpl implements RoomService {
 	public RoomServiceImpl(EntityManager em){
     	this();
     	this.em = em;
+	}
+
+	private String createID() {
+		String unique = UUID.randomUUID().toString();
+		return unique.substring(24);
 	}
 
 	private String makeRequest(String url, String mediaType) {
@@ -71,7 +76,7 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public boolean isRoomAdmin(int roomId, int userId) {
+	public boolean isRoomAdmin(String roomId, int userId) {
     	log.info("Check if user is the administrator of the room");
 		Room room = get(roomId);
 		return room.getRoomAdminId() == userId;
@@ -79,28 +84,27 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	@Transactional
-	public int createRoom(int userId) {
+	public String createRoom(int userId) {
     	log.info("Create a room, set the administrator and add the user");
 		Room room = new Room();
 		room.setRoomAdminId(userId);
-		room.setRoomId(counter);
+		room.setRoomId(createID());
 		em.persist(room);
 		em.flush();
-		counter++;
-		int createdRoomId = room.getRoomId();
+		String createdRoomId = room.getRoomId();
 		roomUserService.create(createdRoomId, userId);
 		return createdRoomId;
 	}
 
 	@Override
-	public void joinRoom(int roomId, int userId) {
+	public void joinRoom(String roomId, int userId) {
     	log.info("Add user to room");
 		roomUserService.create(roomId, userId);
 	}
 
 	@Override
 	@Transactional
-	public void deleteRoom(int roomId) {
+	public void deleteRoom(String roomId) {
     	log.info("Delete the room");
     	//Delete room
     	Room room = get(roomId);
@@ -110,14 +114,14 @@ public class RoomServiceImpl implements RoomService {
     	//Delete all room_user records associated
 		List<Room_User> room_users = roomUserService.getAll();
     	for (Room_User room_user : room_users) {
-    		if (room_user.getRoomId() == roomId)
+    		if (Objects.equals(room_user.getRoomId(), roomId))
     			em.remove(room_user);
 		}
 	}
 
 	@Override
 	@Transactional
-	public boolean closeRoom(int roomId) {
+	public boolean closeRoom(String roomId) {
     	log.info("Close the room");
     	//If room is already closed, return false, else return true
     	Room room = get(roomId);
@@ -138,27 +142,27 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public boolean isRoomClosed(int roomId) {
+	public boolean isRoomClosed(String roomId) {
 		log.info("Check if room is closed");
 		Room room = get(roomId);
 		return room.isRoomClosed();
 	}
 
 	@Override
-	public boolean isUserInRoom(int roomId, int userId) {
+	public boolean isUserInRoom(String roomId, int userId) {
 		log.info("Check if user is already in the room");
 		return roomUserService.exists(roomId, userId);
 	}
 
 	@Override
-	public String getRoomUsers(int roomId) {
+	public String getRoomUsers(String roomId) {
 		log.info("Get all users in a room");
 		ArrayList<Integer> validUsersIds = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		List<Room_User> room_users = roomUserService.getAll();
 
 		for (Room_User room_user : room_users) {
-			if (!(room_user.getRoomId() == roomId))
+			if (!(Objects.equals(room_user.getRoomId(), roomId)))
 				continue;
 
 			validUsersIds.add(room_user.getUserId());
@@ -189,7 +193,7 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public Room get(int roomId) {
+	public Room get(String roomId) {
 		return em.find(Room.class, roomId);
 	}
 
@@ -215,7 +219,7 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public boolean exists(int roomId) {
+	public boolean exists(String roomId) {
 		Room r = em.find(Room.class, roomId);
 		return (r != null);
 	}

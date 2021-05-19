@@ -8,20 +8,20 @@ import java.util.List;
 public interface RoomService {
 
 	String getWelcomeMessage();
-	boolean isUserInRoom(int roomId, int userId);
-	String getRoomUsers(int roomId);
+	boolean isUserInRoom(String roomId, int userId);
+	String getRoomUsers(String roomId);
 	List<Room> getAll();
-	Room get(int roomId);
+	Room get(String roomId);
 	Long count();
 	void update(Room room);
-	boolean exists(int roomId);
+	boolean exists(String roomId);
 	Users getRoomAdmin(int userId);
-	boolean isRoomAdmin(int roomId, int userId);
-	int createRoom(int userId);
-	void joinRoom(int roomId, int userId);
-	void deleteRoom(int roomId);
-	boolean closeRoom(int roomId);
+	boolean isRoomAdmin(String roomId, int userId);
+	String createRoom(int userId);
+	void joinRoom(String roomId, int userId);
+	void deleteRoom(String roomId);
+	boolean closeRoom(String roomId);
 	boolean isUserIdInvalid(int userId);
-	boolean isRoomClosed(int roomId);
+	boolean isRoomClosed(String roomId);
 
 }

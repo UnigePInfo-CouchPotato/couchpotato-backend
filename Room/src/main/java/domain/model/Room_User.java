@@ -13,7 +13,7 @@ import java.util.Date;
 public class Room_User implements Serializable {
 
 	@Id
-	private int roomId;
+	private String roomId;
 	@Id
 	private int userId;
 	@NotNull

@@ -28,16 +28,16 @@ public class RoomRestService {
     @Inject
     private RoomUserService roomUserService;
 
-    private Response handleRoomIdQueryParam(int roomId) {
+    private Response handleRoomIdQueryParam(String roomId) {
         //Check if params are valid (i.e. userId is equal to -1)
-        if (roomId == -1) {
+        if (roomId == null) {
             String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
             return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
         }
 
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            String errorMessage = "{" + String.format("\"error\":\"Room %s does not exist\"", roomId) + "}";
             return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
         }
 
@@ -45,16 +45,16 @@ public class RoomRestService {
         return Response.noContent().build();
     }
 
-    private Response handleRoomIdAndUserIdQueryParams(int roomId, int userId) {
-        //Check if params are valid (i.e. roomId/userId are equal to -1)
-        if (roomId == -1 || userId == -1) {
+    private Response handleRoomIdAndUserIdQueryParams(String roomId, int userId) {
+        //Check if params are valid (i.e. roomId is null or userId is equal to -1)
+        if (roomId == null || userId == -1) {
             String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
             return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
         }
 
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %d does not exist\"", roomId) + "}";
+            String errorMessage = "{" + String.format("\"error\":\"Room %s does not exist\"", roomId) + "}";
             return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
         }
 
@@ -94,7 +94,7 @@ public class RoomRestService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a specific room using its id")
-    public Response get(@QueryParam("roomId") @DefaultValue("-1") int roomId) {
+    public Response get(@QueryParam("roomId") String roomId) {
         Response response = handleRoomIdQueryParam(roomId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
@@ -106,9 +106,9 @@ public class RoomRestService {
     @Path("/exists")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if a specific room exists")
-    public Response exists(@QueryParam("roomId") @DefaultValue("-1") int roomId) {
+    public Response exists(@QueryParam("roomId") String roomId) {
         //Check if params are valid (i.e. roomId is equal to -1)
-        if (roomId == -1) {
+        if (roomId == null) {
             String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
             return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
         }
@@ -121,7 +121,7 @@ public class RoomRestService {
     @Path("/users")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get all users in a specific room")
-    public Response getRoomUsers(@QueryParam("roomId") @DefaultValue("-1") int roomId) {
+    public Response getRoomUsers(@QueryParam("roomId") String roomId) {
         Response response = handleRoomIdQueryParam(roomId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
@@ -133,7 +133,7 @@ public class RoomRestService {
     @Path("/is-room-admin")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if user is admin of a specific room")
-    public Response isRoomAdmin(@QueryParam("roomId") @DefaultValue("-1") int roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
+    public Response isRoomAdmin(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
@@ -146,7 +146,7 @@ public class RoomRestService {
     @Path("/admin")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the admin of a specific room")
-    public Response getRoomAdmin(@QueryParam("roomId") @DefaultValue("-1") int roomId) {
+    public Response getRoomAdmin(@QueryParam("roomId") String roomId) {
         Response response = handleRoomIdQueryParam(roomId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
@@ -174,7 +174,7 @@ public class RoomRestService {
         }
 
         //Create a room
-        int roomId = roomService.createRoom(userId);
+        String roomId = roomService.createRoom(userId);
         String successMessage = "{" + "\"data\":" + "{" + "\"roomId\":" + roomId + "}" + "}";
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
     }
@@ -183,14 +183,14 @@ public class RoomRestService {
     @Path("/delete")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete a room")
-    public Response deleteRoom(@QueryParam("roomId") @DefaultValue("-1") int roomId) {
+    public Response deleteRoom(@QueryParam("roomId") String roomId) {
         Response response = handleRoomIdQueryParam(roomId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
         //Delete a room
         roomService.deleteRoom(roomId);
-        String successMessage = "{" + String.format("\"message\":\"Room %d has been deleted successfully\"", roomId) + "}";
+        String successMessage = "{" + String.format("\"message\":\"Room %s has been deleted successfully\"", roomId) + "}";
         return Response.status(Response.Status.OK).entity(successMessage).build();
     }
 
@@ -198,24 +198,24 @@ public class RoomRestService {
     @Path("/close")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Close a room")
-    public Response closeRoom(@QueryParam("roomId") @DefaultValue("-1") int roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
+    public Response closeRoom(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
         //Check if user is admin of the room
         if(!roomService.isRoomAdmin(roomId, userId)) {
-            String errorMessage = "{" + String.format("\"error\":\"You are not the administrator of the room %d\"", roomId) + "}";
+            String errorMessage = "{" + String.format("\"error\":\"You are not the administrator of the room %s\"", roomId) + "}";
             return Response.status(Response.Status.FORBIDDEN).entity(errorMessage).build();
         }
 
         //Close the room
         if (!roomService.closeRoom(roomId)) {
-            String successMessage = "{" + String.format("\"error\":\"Room %d is already closed\"", roomId) + "}";
+            String successMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
             return Response.status(Response.Status.CONFLICT).entity(successMessage).build();
         }
 
-        String successMessage = "{" + String.format("\"message\":\"Room %d has been closed successfully\"", roomId) + "}";
+        String successMessage = "{" + String.format("\"message\":\"Room %s has been closed successfully\"", roomId) + "}";
         return Response.status(Response.Status.OK).entity(successMessage).build();
     }
 
@@ -223,26 +223,26 @@ public class RoomRestService {
     @Path("/join")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Join a room")
-    public Response joinRoom(@QueryParam("roomId") @DefaultValue("-1") int roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
+    public Response joinRoom(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
         //Check if room is closed
         if (roomService.isRoomClosed(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %d is already closed\"", roomId) + "}";
+            String errorMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
             return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
         }
 
         //Check if user is already in the room
         if(roomService.isUserInRoom(roomId, userId)) {
-            String errorMessage = "{" + String.format("\"error\":\"User %d is already in this room\"", userId) + "}";
+            String errorMessage = "{" + String.format("\"error\":\"User %s is already in this room\"", userId) + "}";
             return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
         }
 
         //Add the user to a room
         roomService.joinRoom(roomId, userId);
-        String successMessage = "{" + String.format("\"message\":\"User %d has joined the room %d successfully\"", userId, roomId) + "}";
+        String successMessage = "{" + String.format("\"message\":\"User %d has joined the room %s successfully\"", userId, roomId) + "}";
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
     }
 
@@ -250,7 +250,7 @@ public class RoomRestService {
     @Path("/find")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Insert into a room the genres of specific user")
-    public Response setUserGenres(@QueryParam("roomId") @DefaultValue("-1") int roomId, @QueryParam("userId") @DefaultValue("-1") int userId, @QueryParam("genres") String genres) {
+    public Response setUserGenres(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId, @QueryParam("genres") String genres) {
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
@@ -269,7 +269,7 @@ public class RoomRestService {
 
         //Check if room is closed
         if (roomService.isRoomClosed(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %d is already closed\"", roomId) + "}";
+            String errorMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
             return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
         }
 
