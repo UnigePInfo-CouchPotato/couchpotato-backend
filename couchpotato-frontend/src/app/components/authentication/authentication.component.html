@@ -1,0 +1,22 @@
+<div class="h-100 d-flex flex-column justify-content-center">
+  <div class="mx-auto auth-container d-flex flex-column container-fluid">
+    <div class="card card-heading">
+      <img src="/assets/pictures/couchpotato_avatar.png" alt="couchpotato-avatar" class="img-fluid card-img-top couchpotato-img unselectable">
+      <div class="card-body">
+        <p class="card-text text-center vw-2" id="card-title">Let's Couch Potato</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="mx-auto d-flex flex-row pill-box">
+        <div (click)="this.selected = true" [ngClass]="{'active': this.loginSelected}" class="pill mx-2">Login</div>
+        <div (click)="this.selected = false" [ngClass]="{'active': !this.loginSelected}" class="pill mx-2">Register</div>
+      </div>
+      <ng-container *ngIf="this.loginSelected; else elseTemplate">
+        <app-login class="p-4"></app-login>
+      </ng-container>
+      <ng-template #elseTemplate>
+        <app-register class="p-4"></app-register>
+      </ng-template>
+    </div>
+  </div>
+</div>
