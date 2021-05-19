@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
@@ -128,25 +129,39 @@ public class UserManagementRestService {
     }
 
     @GET
-    @Path("exists/{id}") //verify convention
+    @Path("{id}/exists") //verify convention
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Verify if a user exists")
-    public boolean checkUserExists(@PathParam("id") int userId) { return userService.exists(userId); }
+    public boolean checkUserExists(@PathParam("id") int userId) { return userService.exists(userId);  }
 
     @PUT
 //    @Path("users/")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update a given user")
-    public void update(Users user) {
-        userService.update(user);
+    public Response update(Users newUser) {
+        try {
+            userService.update(newUser);
+        } catch(IllegalArgumentException i) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch(Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY).build();
+        }
+        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
     }
 
     @POST
 //    @Path("users/create")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a new user")
-    public void createUser(Users user) {
-        userService.create(user);
+    public Response createUser(Users user) {
+        try {
+            userService.create(user);
+        } catch(IllegalArgumentException i) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch(Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY).build();
+        }
+        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
     }
 
     /* --------- Preferences REQUESTS --------- */

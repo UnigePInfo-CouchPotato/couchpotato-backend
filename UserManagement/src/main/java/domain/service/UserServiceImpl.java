@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
     
 	@Override
 	public List<Users> getAll() {
+    	log.info("retrieve all users");
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<Users> cq = cb.createQuery(Users.class);
 		Root<Users> rootEntry = cq.from(Users.class);
