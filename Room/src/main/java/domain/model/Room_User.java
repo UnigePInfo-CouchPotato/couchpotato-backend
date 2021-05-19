@@ -19,5 +19,8 @@ public class Room_User implements Serializable {
 	@NotNull
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationDate = new Date();
+	@Column(columnDefinition="TEXT CHECK (char_length(genres) <= 500)")
+	@NotNull
+	private String genres = "";
 
 }

@@ -246,4 +246,43 @@ public class RoomRestService {
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
     }
 
+    @GET
+    @Path("/find")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Insert into a room the genres of specific user")
+    public Response setUserGenres(@QueryParam("roomId") @DefaultValue("-1") int roomId, @QueryParam("userId") @DefaultValue("-1") int userId, @QueryParam("genres") String genres) {
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        //Check if "genres" is null
+        if (genres == null) {
+            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
+            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+        }
+
+        //Check if "genres" is empty
+        if (genres.isEmpty()) {
+            String errorMessage = "{" + "\"error\":\"Please specify at least one genre\"" + "}";
+            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+        }
+
+        //Check if room is closed
+        if (roomService.isRoomClosed(roomId)) {
+            String errorMessage = "{" + String.format("\"error\":\"Room %d is already closed\"", roomId) + "}";
+            return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
+        }
+
+        //Check if user is in this particular room
+        if (!roomUserService.exists(roomId, userId)) {
+            String errorMessage = "{" + String.format("\"error\":\"User %d is not in this room\"", userId) + "}";
+            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
+        }
+
+        //Add the genres
+        roomUserService.setUserGenres(roomId, userId, genres);
+        String successMessage = "{" + "\"message\":\"The genres have been set successfully\"" + "}";
+        return Response.status(Response.Status.OK).entity(successMessage).build();
+    }
+
 }

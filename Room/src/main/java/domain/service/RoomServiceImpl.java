@@ -101,7 +101,7 @@ public class RoomServiceImpl implements RoomService {
 	@Override
 	@Transactional
 	public void deleteRoom(int roomId) {
-    	log.info("Deleting the room");
+    	log.info("Delete the room");
     	//Delete room
     	Room room = get(roomId);
     	if (room != null)
@@ -118,7 +118,7 @@ public class RoomServiceImpl implements RoomService {
 	@Override
 	@Transactional
 	public boolean closeRoom(int roomId) {
-    	log.info("Closing the room");
+    	log.info("Close the room");
     	//If room is already closed, return false, else return true
     	Room room = get(roomId);
     	if (room.isRoomClosed())
@@ -131,8 +131,8 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public boolean isUserIdInvalid(int userId) {
-    	log.info("Checking if the user id is valid");
-		final String url = "http://usermanagement-service:28080/users/exists/" + userId;
+    	log.info("Check if the user id is valid");
+		final String url = "http://usermanagement-service:28080/users/" + userId + "/exists";
 		String response = makeRequest(url, MediaType.APPLICATION_JSON);
 		return !Boolean.parseBoolean(response);
 	}
@@ -146,7 +146,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public boolean isUserInRoom(int roomId, int userId) {
-		log.info("Checks if user is already in the room");
+		log.info("Check if user is already in the room");
 		return roomUserService.exists(roomId, userId);
 	}
 
