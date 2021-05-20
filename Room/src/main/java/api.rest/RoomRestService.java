@@ -2,6 +2,7 @@ package api.rest;
 
 import domain.model.Room;
 import domain.model.Room_User;
+import domain.model.Vote;
 import domain.service.RoomService;
 import domain.service.RoomUserService;
 import io.swagger.annotations.Api;
@@ -13,6 +14,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
 
 @ApplicationScoped
@@ -243,6 +245,41 @@ public class RoomRestService {
         //Add the user to a room
         roomService.joinRoom(roomId, userId);
         String successMessage = "{" + String.format("\"message\":\"User %d has joined the room %s successfully\"", userId, roomId) + "}";
+        return Response.status(Response.Status.CREATED).entity(successMessage).build();
+    }
+
+    @POST
+    @Path("/vote")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get and save user votes ")
+    public Response setUserVotes(Vote body) {
+        //Get roomId/userId and handle errors
+        int userId = body.getUserId();
+        String roomId = body.getRoomId();
+
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        //Get user choice
+        int[] choice = body.getChoice();
+
+        //Handle errors with array
+        if (choice == null || !choice.getClass().isArray()) {
+            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
+            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+        }
+
+        int SIZE = 5;
+        if (choice.length != SIZE) {
+            String errorMessage = "{" + String.format("\"error\":\"Your array should be of size %d\"", SIZE) + "}";
+            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+        }
+
+        String votes = Arrays.toString(choice);
+        roomUserService.setUserVotes(roomId, userId, votes);
+        String successMessage = "{" + "\"message\":\"Your votes have been saved successfully\"" + "}";
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
     }
 

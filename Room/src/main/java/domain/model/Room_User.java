@@ -22,5 +22,7 @@ public class Room_User implements Serializable {
 	@Column(columnDefinition="TEXT CHECK (char_length(genres) <= 500)")
 	@NotNull
 	private String genres = "";
+	@NotNull
+	private String votes = "";
 
 }

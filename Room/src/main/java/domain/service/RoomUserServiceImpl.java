@@ -92,4 +92,12 @@ public class RoomUserServiceImpl implements RoomUserService {
         Room_User room_user = get(roomId, userId);
         room_user.setGenres(genres);
     }
+
+    @Override
+    @Transactional
+    public void setUserVotes(String roomId, int userId, String votes) {
+        log.info("Set user votes in a room");
+        Room_User room_user = get(roomId, userId);
+        room_user.setVotes(votes);
+    }
 }

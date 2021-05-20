@@ -14,4 +14,6 @@ public interface RoomUserService {
     void create(String roomId, int userId);
     List<Room_User> getAll();
     void setUserGenres(String roomId, int userId, String genres);
+    void setUserVotes(String roomId, int userId, String votes);
+
 }
