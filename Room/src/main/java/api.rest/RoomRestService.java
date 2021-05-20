@@ -319,7 +319,7 @@ public class RoomRestService {
         //Add the genres
         roomUserService.setUserGenres(roomId, userId, genres);
         String successMessage = "{" + "\"message\":\"The genres have been set successfully\"" + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        return Response.status(Response.Status.CREATED).entity(successMessage).build();
     }
 
 }
