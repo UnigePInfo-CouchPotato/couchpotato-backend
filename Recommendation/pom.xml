@@ -119,6 +119,11 @@
             <artifactId>postgresql</artifactId>
             <version>${postgresql.jdbc.driver.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20210307</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
         <!--        <dependency>-->
