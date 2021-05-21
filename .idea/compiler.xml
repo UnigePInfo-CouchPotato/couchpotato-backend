@@ -2,18 +2,21 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="UserManagement" />
-        <module name="Microservice3" />
-        <module name="Authentication" />
+        <module name="Recommendation" />
+        <module name="Room" />
+
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="Microservice1" target="11" />
       <module name="Microservice2" target="11" />
+      <module name="Microservice3" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

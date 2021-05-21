@@ -10,7 +10,7 @@ public interface UserService {
 	Users get(String username);
 	Users get(int id);
 	Long count();
-	void update(Users users);
+	void update(Users user);
 	boolean exists(int id);
-
+	void create(Users user);
 }

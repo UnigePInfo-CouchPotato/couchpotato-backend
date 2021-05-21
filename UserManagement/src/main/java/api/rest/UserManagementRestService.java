@@ -1,7 +1,9 @@
 package api.rest;
 
+import domain.model.Users;
 import domain.service.UserService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -9,11 +11,13 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Random;
 
 @ApplicationScoped
-@Path("/user-management")
+@Path("/users")
 @Api(value = "user-management", authorizations = {
         @Authorization(value="sampleoauth", scopes = {})
 })
@@ -22,16 +26,19 @@ public class UserManagementRestService {
     @Inject
     private UserService userService;
 
+
+    /* --------- Mock API --------- */
+
     // Fake credentials for login/register in pseudo-db
     private final LinkedHashMap<String, String> fakeCredentials = new LinkedHashMap<String, String>(){{
         put("John", "johnDoeHashedPassword");
     }};
 
-    /*Mock API*/
     @POST
     @Path("/v0/register")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Mock request to register user")
     public Response register(LinkedHashMap<String, String> req) {
         String reg_username = req.get("username");
         String reg_email = req.get("email");
@@ -72,6 +79,7 @@ public class UserManagementRestService {
     @Path("/v0/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Mock request to login")
     public Response login(LinkedHashMap<String, String> req) {
         String userName = req.get("username");
         String userPassword = req.get("password");
@@ -108,10 +116,81 @@ public class UserManagementRestService {
         return Response.status(404).entity(errorMessage).build();
     }
 
+
+
+
+    /* --------- USER REQUESTS --------- */
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get a specific user")
+    public Users get(@PathParam("id") int userId) {
+        return userService.get(userId);
+    }
+
+    @GET
+    @Path("{id}/exists") //verify convention
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Verify if a user exists")
+    public boolean checkUserExists(@PathParam("id") int userId) { return userService.exists(userId);  }
+
+    @PUT
+//    @Path("users/")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a given user")
+    public Response update(Users newUser) {
+        try {
+            userService.update(newUser);
+        } catch(IllegalArgumentException i) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch(Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY).build();
+        }
+        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
+    }
+
+    @POST
+//    @Path("users/create")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a new user")
+    public Response createUser(Users user) {
+        try {
+            userService.create(user);
+        } catch(IllegalArgumentException i) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch(Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY).build();
+        }
+        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
+    }
+
+    /* --------- Preferences REQUESTS --------- */
+    /*
+    @GET
+    @Path("{id}/preferences")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get a specific user")
+    public Users get(@PathParam("id") int userId) {
+        return userService.get(userId);
+    }
+    - add path for post and put?
+    -
+    */
+
+
+    /* --------- TEST REQUESTS  --------- */
+    @GET
+    @Path("/all")
+    @Produces("application/json")
+    @ApiOperation(value = "Obtain all users")
+    public List<Users> getAll() {
+        return userService.getAll();
+    }
+
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String sayPlainTextHello() {
-        return "Hello Jersey";
+        return "Welcome to UserManagement";
     }
 
     @GET
