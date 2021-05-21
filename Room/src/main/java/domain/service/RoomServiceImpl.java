@@ -157,9 +157,10 @@ public class RoomServiceImpl implements RoomService {
 			counter++;
 		}
 
-		Integer[] index = {0, 0, 0, 0, 0};
+		int MAX_MOVIES = 5;
+		Integer[] index = new Integer[MAX_MOVIES];
 		for (int[] score : scores) {
-			for (int j = 0; j < 5; j++) {
+			for (int j = 0; j < MAX_MOVIES; j++) {
 				index[j] += score[j];
 			}
 		}
