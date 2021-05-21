@@ -23,6 +23,6 @@ public class Room_User implements Serializable {
 	@NotNull
 	private String genres = "";
 	@NotNull
-	private String votes = "";
+	private String votes = "[0, 0, 0, 0, 0]";
 
 }

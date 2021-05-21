@@ -47,7 +47,7 @@ public class RoomRestService {
         return Response.noContent().build();
     }
 
-    private Response handleRoomIdAndUserIdQueryParams(String roomId, int userId) {
+    private Response handleRoomIdAndUserIdQueryParams(String roomId, int userId, boolean notJoiningRoom) {
         //Check if params are valid (i.e. roomId is null or userId is equal to -1)
         if (roomId == null || userId == -1) {
             String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
@@ -66,12 +66,20 @@ public class RoomRestService {
             return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
         }
 
+        /*Check if user is in this specific room
+        If "notJoiningRoom" is false, do not check if user is in the room*/
+        if (notJoiningRoom) {
+            if (!roomUserService.exists(roomId, userId)) {
+                String errorMessage = "{" + String.format("\"error\":\"User %d is not in this room\"", userId) + "}";
+                return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
+            }
+        }
+
         //Default -> Return no content
         return Response.noContent().build();
     }
 
     @GET
-    @Path("/welcome")
     @Produces(MediaType.TEXT_PLAIN)
     public String welcome() {
         return "Welcome to the room service";
@@ -94,13 +102,10 @@ public class RoomRestService {
     }
 
     @GET
+    @Path("{roomId}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a specific room using its id")
-    public Response get(@QueryParam("roomId") String roomId) {
-        Response response = handleRoomIdQueryParam(roomId);
-        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
-            return response;
-
+    public Response get(@PathParam("roomId") String roomId) {
         return Response.status(Response.Status.OK).entity(roomService.get(roomId)).build();
     }
 
@@ -136,7 +141,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if user is admin of a specific room")
     public Response isRoomAdmin(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
-        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -201,7 +206,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Close a room")
     public Response closeRoom(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
-        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -226,7 +231,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Join a room")
     public Response joinRoom(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
-        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, false);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -242,7 +247,7 @@ public class RoomRestService {
             return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
         }
 
-        //Add the user to a room
+        //Add the user to the room
         roomService.joinRoom(roomId, userId);
         String successMessage = "{" + String.format("\"message\":\"User %d has joined the room %s successfully\"", userId, roomId) + "}";
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
@@ -252,13 +257,13 @@ public class RoomRestService {
     @Path("/vote")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get and save user votes ")
+    @ApiOperation(value = "Get and save user votes")
     public Response setUserVotes(Vote body) {
         //Get roomId/userId and handle errors
         int userId = body.getUserId();
         String roomId = body.getRoomId();
 
-        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -284,11 +289,26 @@ public class RoomRestService {
     }
 
     @GET
+    @Path("/final")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Find the movie with the most votes")
+    public Response getMovieWithMostVotes(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        final int movieIndex = roomService.getMovieWithMostVotes(roomId);
+
+        String successMessage = "{" + "\"index\":" + movieIndex + "}";
+        return Response.status(Response.Status.OK).entity(successMessage).build();
+    }
+
+    @GET
     @Path("/find")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Insert into a room the genres of specific user")
     public Response setUserGenres(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId, @QueryParam("genres") String genres) {
-        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId);
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -308,12 +328,6 @@ public class RoomRestService {
         if (roomService.isRoomClosed(roomId)) {
             String errorMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
             return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
-        }
-
-        //Check if user is in this particular room
-        if (!roomUserService.exists(roomId, userId)) {
-            String errorMessage = "{" + String.format("\"error\":\"User %d is not in this room\"", userId) + "}";
-            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
         }
 
         //Add the genres

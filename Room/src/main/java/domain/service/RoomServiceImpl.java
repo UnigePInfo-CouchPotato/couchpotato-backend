@@ -17,10 +17,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @ApplicationScoped
 @Log
@@ -41,10 +38,7 @@ public class RoomServiceImpl implements RoomService {
     	this.em = em;
 	}
 
-	private String createID() {
-		String unique = UUID.randomUUID().toString();
-		return unique.substring(24);
-	}
+	private String createID() { return UUID.randomUUID().toString().substring(24); }
 
 	private String makeRequest(String url, String mediaType) {
 		Client client = ClientBuilder.newClient();
@@ -123,7 +117,7 @@ public class RoomServiceImpl implements RoomService {
 	@Transactional
 	public boolean closeRoom(String roomId) {
     	log.info("Close the room");
-    	//If room is already closed, return false, else return true
+    	//If room is already closed, return false else return true
     	Room room = get(roomId);
     	if (room.isRoomClosed())
     		return false;
@@ -146,6 +140,32 @@ public class RoomServiceImpl implements RoomService {
 		log.info("Check if room is closed");
 		Room room = get(roomId);
 		return room.isRoomClosed();
+	}
+
+	@Override
+	public int getMovieWithMostVotes(String roomId) {
+    	log.info("Get the index of the movie with the most votes");
+		List<Room_User> room_users = roomUserService.getAll();
+    	final int numberOfUsers = roomUserService.countRoomUsers(roomId);
+    	int counter = 0;
+
+		int[][] scores = new int[numberOfUsers][];
+		for (Room_User room_user : room_users) {
+			String userVote = room_user.getVotes();
+			int[] array = Arrays.stream(userVote.substring(1, userVote.length()-1).split(", ")).mapToInt(Integer::parseInt).toArray();
+			scores[counter] = array;
+			counter++;
+		}
+
+		Integer[] index = {0, 0, 0, 0, 0};
+		for (int[] score : scores) {
+			for (int j = 0; j < 5; j++) {
+				index[j] += score[j];
+			}
+		}
+		final int max = Collections.max(Arrays.asList(index));
+
+		return Arrays.asList(index).indexOf(max);
 	}
 
 	@Override

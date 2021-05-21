@@ -10,6 +10,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
 
 @ApplicationScoped
 @Log
@@ -99,5 +100,18 @@ public class RoomUserServiceImpl implements RoomUserService {
         log.info("Set user votes in a room");
         Room_User room_user = get(roomId, userId);
         room_user.setVotes(votes);
+    }
+
+    @Override
+    public int countRoomUsers(String roomId) {
+        log.info("Count number of room_users records associated to this room id");
+        int counter = 0;
+        List<Room_User> room_users = getAll();
+        for (Room_User room_user : room_users) {
+            if (Objects.equals(room_user.getRoomId(), roomId)) {
+                counter++;
+            }
+        }
+        return counter;
     }
 }
