@@ -12,3 +12,18 @@ spec:
       protocol: TCP
   selector:
     app: {{ include "couchpotato.fullname" . }}.usermanagement-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "couchpotato.fullname" . }}-room-service
+  labels:
+    {{- include "couchpotato.labels" . | nindent 4 }}.room-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 28080
+      targetPort: 28080
+      protocol: TCP
+  selector:
+    app: {{ include "couchpotato.fullname" . }}.room-service

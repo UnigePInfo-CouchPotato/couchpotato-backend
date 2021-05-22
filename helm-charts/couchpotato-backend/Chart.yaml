@@ -13,3 +13,7 @@ dependencies:
   - name: nginx-ingress 
     version: 1.27.0
     repository: https://kubernetes-charts.storage.googleapis.com
+  - name: postgresql
+    version: 7.7.2
+    repository: https://kubernetes-charts.storage.googleapis.com
+    alias: room-database
