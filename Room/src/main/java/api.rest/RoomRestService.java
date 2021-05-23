@@ -30,11 +30,14 @@ public class RoomRestService {
     @Inject
     private RoomUserService roomUserService;
 
+    /*HANDLING SUCCESS AND ERROR MESSAGES*/
+    private static final String BAD_REQUEST_ERROR_MESSAGE = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
+
+    /*HANDLING QUERY PARAMETERS*/
     private Response handleRoomIdQueryParam(String roomId) {
         //Check if params are valid (i.e. userId is equal to -1)
         if (roomId == null) {
-            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
-            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
         //Check if room exists
@@ -50,8 +53,7 @@ public class RoomRestService {
     private Response handleRoomIdAndUserIdQueryParams(String roomId, int userId, boolean notJoiningRoom) {
         //Check if params are valid (i.e. roomId is null or userId is equal to -1)
         if (roomId == null || userId == -1) {
-            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
-            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
         //Check if room exists
@@ -68,11 +70,9 @@ public class RoomRestService {
 
         /*Check if user is in this specific room
         If "notJoiningRoom" is false, do not check if user is in the room*/
-        if (notJoiningRoom) {
-            if (!roomUserService.exists(roomId, userId)) {
-                String errorMessage = "{" + String.format("\"error\":\"User %d is not in this room\"", userId) + "}";
-                return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
-            }
+        if (notJoiningRoom && !roomUserService.exists(roomId, userId)) {
+            String errorMessage = "{" + String.format("\"error\":\"User %d is not in this room\"", userId) + "}";
+            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
         }
 
         //Default -> Return no content
@@ -116,8 +116,7 @@ public class RoomRestService {
     public Response exists(@QueryParam("roomId") String roomId) {
         //Check if params are valid (i.e. roomId is equal to -1)
         if (roomId == null) {
-            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
-            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
         String message = "{" + "\"data\":" + "{" + "\"exists\":" + roomService.exists(roomId) + "}" + "}";
@@ -170,8 +169,7 @@ public class RoomRestService {
     public Response createRoom(@QueryParam("userId") @DefaultValue("-1") int userId) {
         //Check if params are valid (i.e. userId is equal to -1)
         if (userId == -1) {
-            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
-            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
         //Check if user id is valid
@@ -272,8 +270,7 @@ public class RoomRestService {
 
         //Handle errors with array
         if (choice == null || !choice.getClass().isArray()) {
-            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
-            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
         int SIZE = 5;
@@ -314,8 +311,7 @@ public class RoomRestService {
 
         //Check if "genres" is null
         if (genres == null) {
-            String errorMessage = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
-            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
         //Check if "genres" is empty
