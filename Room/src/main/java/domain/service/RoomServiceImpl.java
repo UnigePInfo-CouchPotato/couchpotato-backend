@@ -160,7 +160,7 @@ public class RoomServiceImpl implements RoomService {
 		}
 
 		int MAX_MOVIES = 5;
-		Integer[] index = new Integer[MAX_MOVIES];
+		Integer[] index = new Integer[] {0, 0, 0, 0, 0};
 		for (int[] score : scores) {
 			for (int j = 0; j < MAX_MOVIES; j++) {
 				index[j] += score[j];
