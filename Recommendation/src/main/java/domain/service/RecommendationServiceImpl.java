@@ -11,6 +11,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.math.BigDecimal;
 
 import static java.util.Collections.sort;
 
@@ -22,7 +23,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     public RecommendationServiceImpl() {}
 
 
-    public String getAllGenres(){
+    public Response getAllGenres(){
         String url = "https://api.themoviedb.org/3/genre/movie/list?api_key=b3299a1aa5ae43a9ae35cb544503117f";
 
         Client client = ClientBuilder.newClient();
@@ -31,10 +32,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
 
         if (response.getStatus() != 200) {
-            return "Failed : HTTP error code : " + response.getStatus();
+            JSONObject errorMessage = new JSONObject(){{
+                put("success", false);
+                put("error", "Malformed request");
+            }};
+            return Response.status(Response.Status.fromStatusCode(422)).entity(errorMessage.toString()).build();
         }
 
-        return response.readEntity(String.class);
+        return Response.status(Response.Status.OK).entity(response.readEntity(String.class)).build();
 
     }
 
@@ -71,26 +76,22 @@ public class RecommendationServiceImpl implements RecommendationService {
         JSONObject jsnobject = new JSONObject(response.readEntity(String.class));
         JSONArray result = new JSONArray();
 
-       //int maxPages = jsnobject.optInt("total_pages");
-        int maxPages = 6;
+        int maxPages = jsnobject.optInt("total_pages");
         System.out.println("maxPages: "+maxPages);
         Random rn = new Random();
-        System.out.println("hello");
         ArrayList <Integer> RandomPages = new ArrayList<Integer>();
 
         int a = 1;
         if (maxPages != 0 & maxPages >= 5){
             while (a <= 5){
                 int b = rn.nextInt(maxPages) + 1;
-                System.out.println("hello1");
                 String url_rnd = searchMoviesByPage_uri(String.valueOf(b),idGenres);
-                System.out.println("hello2");
                 WebTarget webTarget_rnd = client.target(url_rnd);
                 Response response_rnd = webTarget_rnd.request(MediaType.TEXT_PLAIN).get();
                 JSONObject jsnobject_rnd = new JSONObject(response_rnd.readEntity(String.class));
                 JSONArray array = new JSONArray(jsnobject_rnd.getJSONArray("results"));
 
-                //JSONArray sorted = sort(array, "vote_average");
+                JSONArray sorted = sort(array, "vote_average");
 
                 System.out.println("Which page ? "+b);
                 result.put(array);
@@ -157,13 +158,13 @@ public class RecommendationServiceImpl implements RecommendationService {
         Collections.sort( jsonValues, new Comparator<JSONObject>() {
             @Override
             public int compare(JSONObject a, JSONObject b) {
-                String valA = new String();
-                String valB = new String();
+                BigDecimal valA;
+                BigDecimal valB;
 
-                valA = (String) a.get(KEY_NAME);
-                valB = (String) b.get(KEY_NAME);
+                valA = (a.getBigDecimal(KEY_NAME));
+                valB = (b.getBigDecimal(KEY_NAME));
 
-                return -valA.compareTo(valB);
+                return valA.compareTo(valB);
             }
         });
         return sortedJsonArray;

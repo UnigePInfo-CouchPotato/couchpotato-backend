@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 
 @ApplicationScoped
@@ -29,17 +30,17 @@ public class RecommendationRestService {
 
     @GET
     @Path("/genres")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getAllGenres() {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAllGenres() {
         return recommendationService.getAllGenres();
     }
 
     //idGenres doit etre un integer dans un string
     //Get all horror and drama movies (id=27,18)
-    //selectGenres=27,18
+    //http://localhost:12080/recommendation/selectGenres=27,18
     @GET
     @Path("/selectGenres={idGenres}")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public String getAllFilmSelected(@PathParam("idGenres") String idGenres) {
         return recommendationService.getAllFilmSelected(idGenres);
     }
@@ -47,7 +48,7 @@ public class RecommendationRestService {
     // detail doit etre un integer dans un string
     @GET
     @Path("/detail={detail}")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public String getAllDetail(@PathParam("detail") String detail) {
         return recommendationService.getAllDetail(detail);
     }
