@@ -8,6 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import domain.model.Room;
 import domain.model.Room_User;
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -119,6 +120,19 @@ public class RoomRestServiceIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.exists", equalTo(true));
+    }
+
+    @Test
+    @AfterAll
+    public static void testDeleteRoom() {
+        given()
+                .queryParam("roomId", "7b07c2qj7lvc")
+                .when()
+                .get("/delete")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("message", equalTo(String.format("Room %s has been deleted successfully", "7b07c2qj7lvc")));
     }
 
 }
