@@ -106,6 +106,10 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a specific room using its id")
     public Response get(@PathParam("roomId") String roomId) {
+        Response response = handleRoomIdQueryParam(roomId);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
         return Response.status(Response.Status.OK).entity(roomService.get(roomId)).build();
     }
 

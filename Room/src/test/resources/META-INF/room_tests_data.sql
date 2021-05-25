@@ -22,10 +22,6 @@ INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b
 INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 5, CURRENT_TIMESTAMP, 'animation', '[0, 0, 1, 1, 0]' );
 INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 6, CURRENT_TIMESTAMP, 'family', '[-1, 2, 6, 2, 1]' );
 INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 7, CURRENT_TIMESTAMP, 'documentary,family', '[7, 8, 1, 5, 4]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 1, CURRENT_TIMESTAMP, 'mystery,comedy', '[0, 3, 2, 2, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 2, CURRENT_TIMESTAMP, 'mystery,family', '[1, 1, 1, 1, 1]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 3, CURRENT_TIMESTAMP, 'western,tv movie,action', '[-6, -2, -3, 4, 1]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 6, CURRENT_TIMESTAMP, '', '[1, 5, 8, 0, 3]' );
 INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'JC3Tzrx2c1nx', 4, CURRENT_TIMESTAMP, 'comedy,documentary', '[10, 2, 8, -2, 1]' );
 INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'JC3Tzrx2c1nx', 5, CURRENT_TIMESTAMP, 'music', '[3, 3, 3, 3, 3]' );
 INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'JC3Tzrx2c1nx', 6, CURRENT_TIMESTAMP, 'history,documentary', '[1, -1, 0, 1, 2]' );
