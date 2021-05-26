@@ -41,7 +41,7 @@ public class RecommendationRestService {
     @GET
     @Path("/selectGenres={idGenres}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAllFilmSelected(@PathParam("idGenres") String idGenres) {
+    public Response getAllFilmSelected(@PathParam("idGenres") String idGenres) {
         return recommendationService.getAllFilmSelected(idGenres);
     }
 
@@ -49,7 +49,7 @@ public class RecommendationRestService {
     @GET
     @Path("/detail={detail}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAllDetail(@PathParam("detail") String detail) {
+    public Response getAllDetail(@PathParam("detail") String detail) {
         return recommendationService.getAllDetail(detail);
     }
 

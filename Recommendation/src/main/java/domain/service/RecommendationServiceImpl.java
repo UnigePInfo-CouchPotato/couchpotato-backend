@@ -30,24 +30,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         WebTarget webTarget = client.target(url);
 
         Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
-
-        if (response.getStatus() != 200) {
-            JSONObject errorMessage = new JSONObject(){{
-                put("success", false);
-                put("error", "Malformed request");
-            }};
-            return Response.status(Response.Status.fromStatusCode(422)).entity(errorMessage.toString()).build();
-        }
-
         return Response.status(Response.Status.OK).entity(response.readEntity(String.class)).build();
-
     }
 
     private String searchMoviesByPage_uri(String page, String idGenres) {
         return "https://api.themoviedb.org/3/discover/movie?api_key=b3299a1aa5ae43a9ae35cb544503117f&language=en-US&include_adult=false&include_video=false&page="+page+"&with_genres="+idGenres;
     }
 
-    public String getAllFilmSelected(String idGenres){
+    public Response getAllFilmSelected(String idGenres){
         JSONObject errorMessage = new JSONObject(){{
             put("success", false);
             put("error", "Malformed request");
@@ -61,7 +51,10 @@ public class RecommendationServiceImpl implements RecommendationService {
                 error: "Malformed request"
             }
         */
-        if (!(idGenres.contains(","))) { return errorMessage.toString();}
+        if (!(idGenres.contains(",")) && idGenres.length()>=2) {
+            return Response.status(Response.Status.fromStatusCode(400)).entity(errorMessage.toString()).build();
+        }
+
 
 
         //TODO select the page randomly.
@@ -71,6 +64,14 @@ public class RecommendationServiceImpl implements RecommendationService {
         WebTarget webTarget = client.target(url);
 
         Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
+
+        if (response.getStatus() != 200) {
+            JSONObject errorMessage1 = new JSONObject(){{
+                put("success", false);
+                put("error", "Malformed request");
+            }};
+            return Response.status(Response.Status.fromStatusCode(422)).entity(errorMessage1.toString()).build();
+        }
 
 
         JSONObject jsnobject = new JSONObject(response.readEntity(String.class));
@@ -121,7 +122,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         //JSONArray top_result = new JSONArray();
         //for(int i=0; i <= 4; i++){result.put(top_result.get(i));}
 
-        return result.toString();
+        return Response.status(Response.Status.OK).entity(result.toString()).build();
 
         // int maxPages = json.opt("total_pages");
         // if maxPages is not null and is greater than 5
@@ -182,7 +183,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
 
 
-        public String getAllDetail(String detail){
+        public Response getAllDetail(String detail){
         String url = "https://api.themoviedb.org/3/movie/"+detail+"?api_key=b3299a1aa5ae43a9ae35cb544503117f";
 
         Client client = ClientBuilder.newClient();
@@ -191,10 +192,13 @@ public class RecommendationServiceImpl implements RecommendationService {
         Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
 
         if (response.getStatus() != 200) {
-            return "Failed : HTTP error code : " + response.getStatus();
+            JSONObject errorMessage = new JSONObject(){{
+                put("success", false);
+                put("error", "Malformed request");}};
+            return Response.status(Response.Status.fromStatusCode(422)).entity(errorMessage.toString()).build();
         }
 
-        return response.readEntity(String.class);
+        return Response.status(Response.Status.OK).entity(response.readEntity(String.class)).build();
 
     }
 
