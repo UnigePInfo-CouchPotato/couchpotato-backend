@@ -73,7 +73,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public boolean isRoomAdmin(String roomId, int userId) {
-    	log.info("Check if user is the administrator of the room");
+    	log.info("Check if user is the administrator of a room");
 		Room room = get(roomId);
 		return room.getRoomAdminId() == userId;
 	}
@@ -94,14 +94,14 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public void joinRoom(String roomId, int userId) {
-    	log.info("Add user to room");
+    	log.info("Add user to a room");
 		roomUserService.create(roomId, userId);
 	}
 
 	@Override
 	@Transactional
 	public void deleteRoom(String roomId) {
-    	log.info("Delete the room");
+    	log.info("Delete a room");
     	//Delete room
     	Room room = get(roomId);
     	if (room != null)
@@ -118,7 +118,7 @@ public class RoomServiceImpl implements RoomService {
 	@Override
 	@Transactional
 	public boolean closeRoom(String roomId) {
-    	log.info("Close the room");
+    	log.info("Close a room");
     	//If room is already closed, return false else return true
     	Room room = get(roomId);
     	if (room.isRoomClosed())
@@ -173,7 +173,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public boolean isUserInRoom(String roomId, int userId) {
-		log.info("Check if user is already in the room");
+		log.info("Check if user is already in a room");
 		return roomUserService.exists(roomId, userId);
 	}
 
@@ -217,6 +217,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public Room get(String roomId) {
+		log.info("Get a specific room");
 		return em.find(Room.class, roomId);
 	}
 
@@ -243,6 +244,7 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public boolean exists(String roomId) {
+		log.info("Check if a room exists");
 		Room r = em.find(Room.class, roomId);
 		return (r != null);
 	}

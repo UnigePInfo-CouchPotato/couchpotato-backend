@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeAll;
 
 import io.restassured.RestAssured;
 
+import javax.ejb.AfterCompletion;
+
 public class RoomRestServiceIT {
 
     @BeforeAll
@@ -86,10 +88,9 @@ public class RoomRestServiceIT {
                         .extract()
                         .as(Room_User[].class);
 
-        assertThat(roomUsers.length, equalTo(25));
+        assertThat(roomUsers.length, equalTo(24));
         assertThat(roomUsers[0].getRoomId(), equalTo("7b07c2qj7lvc"));
         assertThat(roomUsers[7].getRoomId(), equalTo("JC3Tzrx2c1nx"));
-        assertThat(roomUsers[10].getRoomId(), equalTo("99rxfyog0a87"));
         assertThat(roomUsers[12].getRoomId(), equalTo("WN5sgnxYD8tC"));
         assertThat(roomUsers[20].getRoomId(), equalTo("Fgf2NLjhh9mx"));
 
@@ -123,16 +124,15 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    @AfterAll
-    public static void testDeleteRoom() {
+    public void testDeleteRoom() {
         given()
-                .queryParam("roomId", "7b07c2qj7lvc")
+                .queryParam("roomId", "99rxfyog0a87")
                 .when()
                 .get("/delete")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("message", equalTo(String.format("Room %s has been deleted successfully", "7b07c2qj7lvc")));
+                .body("message", equalTo(String.format("Room %s has been deleted successfully", "99rxfyog0a87")));
     }
 
 }
