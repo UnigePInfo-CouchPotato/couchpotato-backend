@@ -18,6 +18,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 @Log
@@ -40,7 +43,9 @@ public class RoomServiceImpl implements RoomService {
 
 	/*CONSTANTS*/
 	private static final String USER_MANAGEMENT_SERVICE_URL = "http://usermanagement-service:28080/users/";
+	private static final String RECOMMENDATION_SERVICE_URL = "http://recommendation-service:28080/recommendation/";
 
+	/*USEFUL METHODS*/
 	private String createID() { return UUID.randomUUID().toString().substring(24); }
 
 	private String makeRequest(String url) {
@@ -53,6 +58,31 @@ public class RoomServiceImpl implements RoomService {
 		}
 
 		return response.readEntity(String.class);
+	}
+
+	private boolean isInteger(Object object) {
+		if (object instanceof Integer) {
+			return true;
+		}
+		else {
+			String string = object.toString();
+
+			try {
+				Integer.parseInt(string);
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private <K, V> Stream<K> keys(Map<K, V> map, V value) {
+		return map
+				.entrySet()
+				.stream()
+				.filter(entry -> value.equals(entry.getValue()))
+				.map(Map.Entry::getKey);
 	}
 
 	@Override
@@ -163,6 +193,66 @@ public class RoomServiceImpl implements RoomService {
 		final int max = Collections.max(Arrays.asList(index));
 
 		return Arrays.asList(index).indexOf(max);
+	}
+
+	@Override
+	public String getMovies(String roomId, int userId) {
+		log.info("Get movies from recommendation service");
+		LinkedHashMap<Integer, Integer> index = new LinkedHashMap<>();
+		List<Room_User> roomUsers = roomUserService.getAll();
+		Integer[] genresIdsWithTheMostOccurrences = {0, 0, 0};
+		for (Room_User roomUser : roomUsers) {
+			if (Objects.equals(roomUser.getRoomId(), roomId)){
+				String userGenres = roomUser.getGenres();
+				List<String> genres = Arrays.asList(userGenres.split(","));
+				boolean areNumbers = genres.stream().allMatch(this::isInteger);
+				if (!areNumbers)
+					continue;
+
+				List<Integer> integers = Arrays.stream(userGenres.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+				for (Integer id : integers) {
+					Integer value = index.get(id);
+					index.put(id, (value == null) ? 1 : ++value);
+				}
+			}
+		}
+
+		List<Integer> indexValues = new ArrayList<>(index.values());
+		indexValues.sort(Collections.reverseOrder());
+		int count = 0;
+
+		log.info("Index -> " + index);
+		log.info("Index values -> " + indexValues);
+
+		while (count < 3) {
+			Stream<Integer> keyStream = keys(index, indexValues.get(count));
+			List<Integer> keys = keyStream.collect(Collectors.toList());
+			int size = keys.size();
+
+			if (size == 1) {
+				genresIdsWithTheMostOccurrences[count] = keys.get(0);
+				index.remove(keys.get(0));
+				count++;
+			}
+			else {
+				for (int i = 0; i < (3 - count); i++) {
+					Collections.shuffle(keys);
+					int randomInt = ThreadLocalRandom.current().nextInt(keys.size());
+					Integer value = keys.get(randomInt);
+					genresIdsWithTheMostOccurrences[count] = value;
+					index.remove(keys.get(randomInt));
+					keys.remove(value);
+					count++;
+				}
+			}
+		}
+
+		String idGenres = Arrays.stream(genresIdsWithTheMostOccurrences).map(String::valueOf).collect(Collectors.joining(","));
+		final String url = RECOMMENDATION_SERVICE_URL + "selectGenres=" + idGenres;
+		log.info("idGenres -> " + idGenres);
+		log.info("url -> " + url);
+
+		return makeRequest(url);
 	}
 
 	@Override

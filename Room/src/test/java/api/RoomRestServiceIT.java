@@ -104,7 +104,7 @@ class RoomRestServiceIT {
         assertThat(roomUsers[20].getRoomId(), equalTo("Fgf2NLjhh9mx"));
 
         assertThat(roomUsers[0].getUserId(), equalTo(1));
-        assertThat(roomUsers[0].getGenres(), equalTo("action,comedy"));
+        assertThat(roomUsers[0].getGenres(), equalTo("28,35"));
         assertThat(roomUsers[0].getVotes(), equalTo("[2, 5, 1, -1, 0]"));
     }
 

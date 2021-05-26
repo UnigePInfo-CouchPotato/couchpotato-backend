@@ -22,5 +22,6 @@ public interface RoomService {
 	boolean isUserIdInvalid(int userId);
 	boolean isRoomClosed(String roomId);
 	int getMovieWithMostVotes(String roomId);
+	String getMovies(String roomId, int userId);
 
 }

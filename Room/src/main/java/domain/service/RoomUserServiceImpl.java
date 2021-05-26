@@ -91,6 +91,7 @@ public class RoomUserServiceImpl implements RoomUserService {
     public void setUserGenres(String roomId, int userId, String genres) {
         log.info("Set user genres in a room");
         Room_User roomUser = get(roomId, userId);
+        genres = genres.replace("\"", "").replaceAll("\\s", "");
         roomUser.setGenres(genres);
     }
 

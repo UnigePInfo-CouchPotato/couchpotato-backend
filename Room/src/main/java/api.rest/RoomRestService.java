@@ -179,6 +179,8 @@ public class RoomRestService {
         return Response.status(Response.Status.OK).entity(roomService.getRoomAdmin(adminId)).build();
     }
 
+
+
     @GET
     @Path("/create")
     @Produces(MediaType.APPLICATION_JSON)
@@ -341,6 +343,19 @@ public class RoomRestService {
         roomUserService.setUserGenres(roomId, userId, genres);
         String successMessage = "{" + "\"message\":\"The genres have been set successfully\"" + "}";
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
+    }
+
+    @GET
+    @Path("/results")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get the movies according to the user preferences")
+    public Response getMovies(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        String movies = roomService.getMovies(roomId, userId);
+        return Response.status(Response.Status.OK).entity(movies).build();
     }
 
 }
