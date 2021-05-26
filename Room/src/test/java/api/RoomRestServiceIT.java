@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 import io.restassured.RestAssured;
 
-public class RoomRestServiceIT {
+class RoomRestServiceIT {
 
     @BeforeAll
     public static void setup() {

@@ -31,7 +31,12 @@ public class RoomRestService {
     private RoomUserService roomUserService;
 
     /*HANDLING SUCCESS AND ERROR MESSAGES*/
+    private static final String DATA = "\"data\":";
     private static final String BAD_REQUEST_ERROR_MESSAGE = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
+
+    private static String generateRoomClosedErrorMessage(String roomId) {
+        return "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
+    }
 
     /*HANDLING QUERY PARAMETERS*/
     private Response handleRoomIdQueryParam(String roomId) {
@@ -131,7 +136,7 @@ public class RoomRestService {
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
-        String message = "{" + "\"data\":" + "{" + "\"exists\":" + roomService.exists(roomId) + "}" + "}";
+        String message = "{" + DATA + "{" + "\"exists\":" + roomService.exists(roomId) + "}" + "}";
         return Response.status(Response.Status.OK).entity(message).build();
     }
 
@@ -156,7 +161,7 @@ public class RoomRestService {
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        String message = "{" + "\"data\":" + "{" + "\"isRoomAdmin\":" + roomService.isRoomAdmin(roomId, userId) + "}" + "}";
+        String message = "{" + DATA + "{" + "\"isRoomAdmin\":" + roomService.isRoomAdmin(roomId, userId) + "}" + "}";
         return Response.status(Response.Status.OK).entity(message).build();
     }
 
@@ -192,7 +197,7 @@ public class RoomRestService {
 
         //Create a room
         String roomId = roomService.createRoom(userId);
-        String successMessage = "{" + "\"data\":" + "{" + "\"roomId\":" + roomId + "}" + "}";
+        String successMessage = "{" + DATA + "{" + "\"roomId\":" + roomId + "}" + "}";
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
     }
 
@@ -227,10 +232,8 @@ public class RoomRestService {
         }
 
         //Close the room
-        if (!roomService.closeRoom(roomId)) {
-            String successMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
-            return Response.status(Response.Status.CONFLICT).entity(successMessage).build();
-        }
+        if (!roomService.closeRoom(roomId))
+            return Response.status(Response.Status.CONFLICT).entity(generateRoomClosedErrorMessage(roomId)).build();
 
         String successMessage = "{" + String.format("\"message\":\"Room %s has been closed successfully\"", roomId) + "}";
         return Response.status(Response.Status.OK).entity(successMessage).build();
@@ -246,10 +249,8 @@ public class RoomRestService {
             return response;
 
         //Check if room is closed
-        if (roomService.isRoomClosed(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
-            return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
-        }
+        if (roomService.isRoomClosed(roomId))
+            return Response.status(Response.Status.CONFLICT).entity(generateRoomClosedErrorMessage(roomId)).build();
 
         //Check if user is already in the room
         if(roomService.isUserInRoom(roomId, userId)) {
@@ -285,9 +286,9 @@ public class RoomRestService {
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
-        int SIZE = 5;
-        if (choice.length != SIZE) {
-            String errorMessage = "{" + String.format("\"error\":\"Your array should be of size %d\"", SIZE) + "}";
+        int length = 5;
+        if (choice.length != length) {
+            String errorMessage = "{" + String.format("\"error\":\"Your array should be of length %d\"", length) + "}";
             return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
         }
 
@@ -333,10 +334,8 @@ public class RoomRestService {
         }
 
         //Check if room is closed
-        if (roomService.isRoomClosed(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
-            return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
-        }
+        if (roomService.isRoomClosed(roomId))
+            return Response.status(Response.Status.CONFLICT).entity(generateRoomClosedErrorMessage(roomId)).build();
 
         //Add the genres
         roomUserService.setUserGenres(roomId, userId, genres);
