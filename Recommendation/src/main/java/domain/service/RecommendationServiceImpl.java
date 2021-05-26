@@ -13,12 +13,28 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.math.BigDecimal;
 
+import static java.util.Collections.max;
 import static java.util.Collections.sort;
 
 
 @ApplicationScoped
 @Log
 public class RecommendationServiceImpl implements RecommendationService {
+    private boolean isInteger(Object object) {
+        if(object instanceof Integer) {
+            return true;
+        } else {
+            String string = object.toString();
+
+            try {
+                Integer.parseInt(string);
+            } catch(Exception e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     public RecommendationServiceImpl() {}
 
@@ -38,26 +54,16 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     public Response getAllFilmSelected(String idGenres){
-        JSONObject errorMessage = new JSONObject(){{
-            put("success", false);
-            put("error", "Malformed request");
-        }};
-
-    // TODO check whether idGenres is in fact a string of numbers separated by ',' otherwise return status code 400
-        /*
-        STATUS CODE 400
-            {
-                success: false,
-                error: "Malformed request"
-            }
-        */
-        if (!(idGenres.contains(",")) && idGenres.length()>=2) {
-            return Response.status(Response.Status.fromStatusCode(400)).entity(errorMessage.toString()).build();
+        List<String> genres = Arrays.asList(idGenres.split(","));
+        boolean areNumbers = genres.stream().allMatch(this::isInteger);
+        if (!areNumbers) {
+            JSONObject incorrectFormatMessage = new JSONObject(){{
+                put("success", false);
+                put("error", "Malformed request");
+            }};
+            return Response.status(Response.Status.fromStatusCode(400)).entity(incorrectFormatMessage.toString()).build();
         }
 
-
-
-        //TODO select the page randomly.
         String url = "https://api.themoviedb.org/3/discover/movie?api_key=b3299a1aa5ae43a9ae35cb544503117f&language=en-US&include_adult=false&include_video=false&with_genres="+idGenres;
 
         Client client = ClientBuilder.newClient();
@@ -66,92 +72,51 @@ public class RecommendationServiceImpl implements RecommendationService {
         Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
 
         if (response.getStatus() != 200) {
-            JSONObject errorMessage1 = new JSONObject(){{
+            JSONObject APIUnreachableMessage = new JSONObject(){{
                 put("success", false);
                 put("error", "Malformed request");
             }};
-            return Response.status(Response.Status.fromStatusCode(422)).entity(errorMessage1.toString()).build();
+            return Response.status(Response.Status.fromStatusCode(422)).entity(APIUnreachableMessage.toString()).build();
         }
 
 
-        JSONObject jsnobject = new JSONObject(response.readEntity(String.class));
-        JSONArray result = new JSONArray();
-
-        int maxPages = jsnobject.optInt("total_pages");
-        System.out.println("maxPages: "+maxPages);
+        JSONObject requestResults = new JSONObject(response.readEntity(String.class));
+        int maxPages = requestResults.optInt("total_pages", 0);
+        System.out.println("maxPages: " + maxPages);
         Random rn = new Random();
-        ArrayList <Integer> RandomPages = new ArrayList<Integer>();
+        ArrayList<Integer> randomPages = new ArrayList<>();
 
-        int a = 1;
-        if (maxPages != 0 & maxPages > 5){
-            while (a <= 5){
+        if (maxPages > 5) {
+            while (randomPages.size() < 5) {
                 int b = rn.nextInt(maxPages) + 1;
-                String url_rnd = searchMoviesByPage_uri(String.valueOf(b),idGenres);
-                WebTarget webTarget_rnd = client.target(url_rnd);
-                Response response_rnd = webTarget_rnd.request(MediaType.TEXT_PLAIN).get();
-                JSONObject jsnobject_rnd = new JSONObject(response_rnd.readEntity(String.class));
-                JSONArray array = new JSONArray(jsnobject_rnd.getJSONArray("results"));
-
-                JSONArray sorted = sort(array, "vote_average");
-                //System.out.println("sorted: "+sorted);
-                //System.out.println("Which page ? "+b);
-                result.put(sorted.get(0));
-                a++;
-            }
-
-        }
-        else {
-            while (a <= maxPages){
-                String url_rnd = searchMoviesByPage_uri(String.valueOf(a),idGenres);
-                WebTarget webTarget_rnd = client.target(url_rnd);
-                Response response_rnd = webTarget_rnd.request(MediaType.TEXT_PLAIN).get();
-                JSONObject jsnobject_rnd = new JSONObject(response_rnd.readEntity(String.class));
-                JSONArray array = new JSONArray(jsnobject_rnd.getJSONArray("results"));
-                JSONArray sorted = sort(array, "vote_average");
-                //System.out.println("Which page ? "+a);
-                int i = 0;
-                if (result.length()<5){
-                    while (i<5){
-                        result.put(sorted.get(i));
-                        i++;
-                    }
+                if (!randomPages.contains(b)){
+                    randomPages.add(b);
                 }
             }
+        } else if (maxPages != 0) {
+            for (int i = 1; i <= maxPages; i++) {
+                randomPages.add(i);
+            }
         }
 
-        //JSONArray top_result = new JSONArray();
-        //for(int i=0; i <= 4; i++){result.put(top_result.get(i));}
+        JSONArray results = new JSONArray();
+        for (int index: randomPages) {
+            String randomizedUrl = searchMoviesByPage_uri(String.valueOf(index), idGenres);
+            WebTarget randomizedWebTarget = client.target(randomizedUrl);
+            Response randomizedResponse = randomizedWebTarget.request(MediaType.TEXT_PLAIN).get();
+            JSONObject resultsObject = new JSONObject(randomizedResponse.readEntity(String.class));
+            JSONArray resultsArray = new JSONArray(resultsObject.getJSONArray("results"));
+            results.putAll(resultsArray);
+        }
 
-        return Response.status(Response.Status.OK).entity(result.toString()).build();
+        JSONArray sortedResults = sort(results, "vote_average");
+        JSONArray finalResults = new JSONArray();
 
-        // int maxPages = json.opt("total_pages");
-        // if maxPages is not null and is greater than 5
-        //      select 5 random unique numbers between 1 and maxPages
-        // else
-        //      take all page numbers from 1 to max_pages
+        for (int i = 0; i < Math.min(5, sortedResults.length()); i++) {
+            finalResults.put(sortedResults.get(i));
+        }
 
-        // query each URL then build the JSONObject from the response
-        // Iterate over the JSONArray that is at: json.getJSONArray("results")
-        // Add each JSONObject within to results ^
-
-        // sort by vote_average (this implementation of Collections.sort would work: https://discourse.processing.org/t/sorting-a-jsonarray-by-one-of-its-values/4911/6)
-
-        // Take the first 5
-        // Return those in the format:
-        /*
-        STATUS CODE 200
-            {
-                success: true,
-                results: [
-                    { (movie details 1) },
-                    { (movie details 2) },
-                    { (movie details 3) },
-                    { (movie details 4) },
-                    { (movie details 5) }
-                ]
-            }
-         */
-
+        return Response.status(Response.Status.OK).entity(finalResults.toString()).build();
     }
 
     public JSONArray sort(JSONArray jsonArr, String sortBy) {
