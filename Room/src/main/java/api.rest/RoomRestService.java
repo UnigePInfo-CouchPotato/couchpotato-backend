@@ -94,6 +94,14 @@ public class RoomRestService {
     }
 
     @GET
+    @Path("/count")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Count the number of rooms")
+    public Long count() {
+        return roomService.count();
+    }
+
+    @GET
     @Path("/room-users")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get all room_users")

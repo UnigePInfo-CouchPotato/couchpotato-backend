@@ -8,13 +8,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import domain.model.Room;
 import domain.model.Room_User;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
 import io.restassured.RestAssured;
-
-import javax.ejb.AfterCompletion;
 
 public class RoomRestServiceIT {
 
@@ -25,7 +22,7 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testWelcomeMessage() {
+    void testWelcomeMessage() {
         when()
                 .get("/")
                 .then()
@@ -34,7 +31,19 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testGetValidRoom() {
+    void testCount() {
+        int numberOfRooms = when()
+                                .get("/count")
+                                .then()
+                                .statusCode(HttpStatus.SC_OK)
+                                .extract()
+                                .as(int.class);
+
+        assertThat(numberOfRooms, equalTo(5));
+    }
+
+    @Test
+    void testGetValidRoom() {
         when()
                 .get("/Fgf2NLjhh9mx")
                 .then()
@@ -46,7 +55,7 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testGetInvalidRoom() {
+    void testGetInvalidRoom() {
         when()
                 .get("/1b02c2ej1lvc")
                 .then()
@@ -56,7 +65,7 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testGetAllRooms() {
+    void testGetAllRooms() {
         Room[] rooms =
                 when()
                         .get("/all")
@@ -78,7 +87,7 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testGetAllRoomUsers() {
+    void testGetAllRoomUsers() {
         Room_User[] roomUsers =
                 when()
                         .get("/room-users")
@@ -100,7 +109,7 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testExistsIsFalse() {
+    void testExistsIsFalse() {
         given()
                 .queryParam("roomId", "1b02c2ej1lvc")
                 .when()
@@ -112,7 +121,7 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testExistsIsTrue() {
+    void testExistsIsTrue() {
         given()
                 .queryParam("roomId", "7b07c2qj7lvc")
                 .when()
@@ -124,7 +133,7 @@ public class RoomRestServiceIT {
     }
 
     @Test
-    public void testDeleteRoom() {
+    void testDeleteValidRoom() {
         given()
                 .queryParam("roomId", "99rxfyog0a87")
                 .when()
@@ -133,6 +142,18 @@ public class RoomRestServiceIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("message", equalTo(String.format("Room %s has been deleted successfully", "99rxfyog0a87")));
+    }
+
+    @Test
+    void testDeleteInvalidRoom() {
+        given()
+                .queryParam("roomId", "1b02c2ej1lvc")
+                .when()
+                .get("/delete")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("error", equalTo(String.format("Room %s does not exist", "1b02c2ej1lvc")));
     }
 
 }

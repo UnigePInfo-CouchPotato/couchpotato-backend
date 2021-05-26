@@ -43,22 +43,16 @@ public class RoomServiceImpl implements RoomService {
 
 	private String createID() { return UUID.randomUUID().toString().substring(24); }
 
-	private String makeRequest(String url, String mediaType) {
+	private String makeRequest(String url) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
-		Response response = webTarget.request(mediaType).get();
+		Response response = webTarget.request(MediaType.APPLICATION_JSON).get();
 
 		if (response.getStatus() != 200) {
 			return "Failed : HTTP error code : " + response.getStatus();
 		}
 
 		return response.readEntity(String.class);
-	}
-
-	@Override
-	public String getWelcomeMessage() {
-    	log.info("Get welcome message from user management");
-    	return makeRequest(USER_MANAGEMENT_SERVICE_URL, MediaType.TEXT_PLAIN);
 	}
 
 	@Override
@@ -133,7 +127,7 @@ public class RoomServiceImpl implements RoomService {
 	public boolean isUserIdInvalid(int userId) {
     	log.info("Check if the user id is valid");
 		final String url = USER_MANAGEMENT_SERVICE_URL + userId + "/exists";
-		String response = makeRequest(url, MediaType.APPLICATION_JSON);
+		String response = makeRequest(url);
 		return !Boolean.parseBoolean(response);
 	}
 
@@ -159,10 +153,10 @@ public class RoomServiceImpl implements RoomService {
 			counter++;
 		}
 
-		int MAX_MOVIES = 5;
+		int maxMovies = 5;
 		Integer[] index = new Integer[] {0, 0, 0, 0, 0};
 		for (int[] score : scores) {
-			for (int j = 0; j < MAX_MOVIES; j++) {
+			for (int j = 0; j < maxMovies; j++) {
 				index[j] += score[j];
 			}
 		}
@@ -195,7 +189,7 @@ public class RoomServiceImpl implements RoomService {
 		int count = 0;
 		for (Integer validUserId : validUsersIds) {
 			final String url = USER_MANAGEMENT_SERVICE_URL + validUserId;
-			String str = makeRequest(url, MediaType.APPLICATION_JSON);
+			String str = makeRequest(url);
 			stringBuilder.append(str);
 			count++;
 			if (count < validUsersIds.size())
@@ -229,17 +223,6 @@ public class RoomServiceImpl implements RoomService {
 		CriteriaQuery<Long> cq = qb.createQuery(Long.class);
 		cq.select(qb.count(cq.from(Room.class)));
 		return em.createQuery(cq).getSingleResult();
-	}
-
-	@Override
-	@Transactional
-	public void update(Room room) {
-		Room r = get(room.getRoomId());
-		if (r != null) {
-			em.merge(room);
-		} else {
-			throw new IllegalArgumentException("Room does not exist : " + room.getRoomId());
-		}
 	}
 
 	@Override
