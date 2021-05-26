@@ -1,10 +1,10 @@
 package domain.service;
 
 
-import java.util.List;
+import javax.ws.rs.core.Response;
 
 public interface RecommendationService {
-    String getAllGenres();
-    String getAllDetail(String detail);
-    String getAllFilmSelected(String idGenres);
+    Response getAllGenres();
+    Response getAllDetail(String detail);
+    Response getAllFilmSelected(String idGenres);
 }
