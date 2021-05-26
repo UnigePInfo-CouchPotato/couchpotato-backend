@@ -16,7 +16,6 @@
 
     <properties>
         <container.folder>${project.build.directory}/wildfly-${wildfly.version}</container.folder>
-        <!--        <container.folder>${project.build.directory}/wildfly</container.folder>-->
         <postgresql.jdbc.driver.version>42.2.14</postgresql.jdbc.driver.version>
         <skip-docker-build>false</skip-docker-build>
     </properties>
