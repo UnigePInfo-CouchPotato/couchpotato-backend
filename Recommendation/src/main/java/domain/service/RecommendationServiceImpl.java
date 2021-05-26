@@ -82,7 +82,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         ArrayList <Integer> RandomPages = new ArrayList<Integer>();
 
         int a = 1;
-        if (maxPages != 0 & maxPages >= 5){
+        if (maxPages != 0 & maxPages > 5){
             while (a <= 5){
                 int b = rn.nextInt(maxPages) + 1;
                 String url_rnd = searchMoviesByPage_uri(String.valueOf(b),idGenres);
@@ -92,9 +92,9 @@ public class RecommendationServiceImpl implements RecommendationService {
                 JSONArray array = new JSONArray(jsnobject_rnd.getJSONArray("results"));
 
                 JSONArray sorted = sort(array, "vote_average");
-
-                System.out.println("Which page ? "+b);
-                result.put(array);
+                //System.out.println("sorted: "+sorted);
+                //System.out.println("Which page ? "+b);
+                result.put(sorted.get(0));
                 a++;
             }
 
@@ -107,13 +107,19 @@ public class RecommendationServiceImpl implements RecommendationService {
                 JSONObject jsnobject_rnd = new JSONObject(response_rnd.readEntity(String.class));
                 JSONArray array = new JSONArray(jsnobject_rnd.getJSONArray("results"));
                 JSONArray sorted = sort(array, "vote_average");
-                System.out.println("Which page ? "+a);
-                result.put(sorted);
-                a++;
+                //System.out.println("Which page ? "+a);
+                int i = 0;
+                if (result.length()<5){
+                    while (i<5){
+                        result.put(sorted.get(i));
+                        i++;
+                    }
+                }
             }
         }
 
-        //for(int i=0; i <= 4; i++){result.put(array.get(i));}
+        //JSONArray top_result = new JSONArray();
+        //for(int i=0; i <= 4; i++){result.put(top_result.get(i));}
 
         return result.toString();
 
@@ -164,11 +170,17 @@ public class RecommendationServiceImpl implements RecommendationService {
                 valA = (a.getBigDecimal(KEY_NAME));
                 valB = (b.getBigDecimal(KEY_NAME));
 
-                return valA.compareTo(valB);
+                return -valA.compareTo(valB);
             }
         });
+        for(int i = 0; i < jsonArr.length(); i++) {
+            sortedJsonArray.put(jsonValues.get(i));
+        }
         return sortedJsonArray;
     }
+
+
+
 
         public String getAllDetail(String detail){
         String url = "https://api.themoviedb.org/3/movie/"+detail+"?api_key=b3299a1aa5ae43a9ae35cb544503117f";
