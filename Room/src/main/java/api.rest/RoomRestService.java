@@ -226,8 +226,7 @@ public class RoomRestService {
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
-
-        //Check if user is admin of the room
+        //Check if  user is admin of the room
         if(!roomService.isRoomAdmin(roomId, userId)) {
             String errorMessage = "{" + String.format("\"error\":\"You are not the administrator of the room %s\"", roomId) + "}";
             return Response.status(Response.Status.FORBIDDEN).entity(errorMessage).build();
@@ -309,10 +308,9 @@ public class RoomRestService {
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        final int movieIndex = roomService.getMovieWithMostVotes(roomId);
+        final String movie = roomService.getMovieWithMostVotes(roomId);
 
-        String successMessage = "{" + "\"index\":" + movieIndex + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        return Response.status(Response.Status.OK).entity(movie).build();
     }
 
     @GET
@@ -348,7 +346,7 @@ public class RoomRestService {
     @GET
     @Path("/results")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the movies according to the user preferences")
+    @ApiOperation(value = "Get the movies according to the users preferences")
     public Response getMovies(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)

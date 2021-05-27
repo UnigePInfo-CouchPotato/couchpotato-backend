@@ -98,8 +98,10 @@ public class RoomUserServiceImpl implements RoomUserService {
     @Override
     @Transactional
     public void setUserVotes(String roomId, int userId, String votes) {
+        // TODO Change votes representation in database
         log.info("Set user votes in a room");
         Room_User roomUser = get(roomId, userId);
+        votes = votes.replaceAll("\\s", "");
         roomUser.setVotes(votes);
     }
 

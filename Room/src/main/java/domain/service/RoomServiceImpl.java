@@ -3,7 +3,10 @@ package domain.service;
 import domain.model.Room;
 import domain.model.Room_User;
 import domain.model.Users;
+import domain.model.Singleton;
 import lombok.extern.java.Log;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -169,7 +172,7 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public int getMovieWithMostVotes(String roomId) {
+	public String getMovieWithMostVotes(String roomId) {
     	log.info("Get the index of the movie with the most votes");
 		List<Room_User> roomUsers = roomUserService.getAll();
     	final int numberOfUsers = roomUserService.countRoomUsers(roomId);
@@ -178,7 +181,7 @@ public class RoomServiceImpl implements RoomService {
 		int[][] scores = new int[numberOfUsers][];
 		for (Room_User roomUser : roomUsers) {
 			String userVote = roomUser.getVotes();
-			int[] array = Arrays.stream(userVote.substring(1, userVote.length()-1).split(", ")).mapToInt(Integer::parseInt).toArray();
+			int[] array = Arrays.stream(userVote.substring(1, userVote.length()-1).split(",")).mapToInt(Integer::parseInt).toArray();
 			scores[counter] = array;
 			counter++;
 		}
@@ -191,8 +194,16 @@ public class RoomServiceImpl implements RoomService {
 			}
 		}
 		final int max = Collections.max(Arrays.asList(index));
+		final int movieIndex = Arrays.asList(index).indexOf(max);
 
-		return Arrays.asList(index).indexOf(max);
+		Singleton singleton = Singleton.getInstance();
+		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
+		JSONObject jsonObject = roomMoviesData.get(roomId);
+
+		if (jsonObject == null)
+			return "{" + String.format("\"error\":\"No data for room %s\"", roomId) + "}";
+
+		return jsonObject.getJSONObject(String.valueOf(movieIndex)).toString();
 	}
 
 	@Override
@@ -217,12 +228,13 @@ public class RoomServiceImpl implements RoomService {
 			}
 		}
 
+		// TODO Check if hashmap index is empty
+
 		List<Integer> indexValues = new ArrayList<>(index.values());
 		indexValues.sort(Collections.reverseOrder());
 		int count = 0;
 
-		log.info("Index -> " + index);
-		log.info("Index values -> " + indexValues);
+		// TODO Make sure there are at least 3 index values (i.e. 3 genres ids)
 
 		while (count < 3) {
 			Stream<Integer> keyStream = keys(index, indexValues.get(count));
@@ -249,10 +261,24 @@ public class RoomServiceImpl implements RoomService {
 
 		String idGenres = Arrays.stream(genresIdsWithTheMostOccurrences).map(String::valueOf).collect(Collectors.joining(","));
 		final String url = RECOMMENDATION_SERVICE_URL + "selectGenres=" + idGenres;
-		log.info("idGenres -> " + idGenres);
-		log.info("url -> " + url);
+		String response = makeRequest(url);
 
-		return makeRequest(url);
+		Singleton singleton = Singleton.getInstance();
+		JSONArray jsonArray = new JSONArray(response);
+		JSONObject data = new JSONObject();
+
+		// TODO store "movieId":movieData as key/value pair in hashmap
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject movie = jsonArray.getJSONObject(i);
+			data.put(String.valueOf(i), movie);
+
+		}
+		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
+		roomMoviesData.put(roomId, data);
+		singleton.setHashMap(roomMoviesData);
+
+		return response;
 	}
 
 	@Override

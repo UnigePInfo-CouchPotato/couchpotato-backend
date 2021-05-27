@@ -17,4 +17,6 @@ public class Room {
 	@NotNull
 	private boolean roomClosed = false;
 
+	//TODO try to implement a list of users
+
 }
