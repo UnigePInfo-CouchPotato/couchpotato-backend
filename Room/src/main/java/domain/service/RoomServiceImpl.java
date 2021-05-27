@@ -136,9 +136,7 @@ public class RoomServiceImpl implements RoomService {
 
     	//Delete all roomUser records associated
 		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
-    	for (Room_User roomUser : roomUsers) {
-    		em.remove(roomUser);
-		}
+		roomUsers.forEach(roomUser -> em.remove(roomUser));
 	}
 
 	@Override

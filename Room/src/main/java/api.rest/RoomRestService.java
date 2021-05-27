@@ -299,16 +299,14 @@ public class RoomRestService {
         }
 
         HashMap<String, String> hashMap = new HashMap<>();
+        choice.forEach((key, value) -> hashMap.put(key, String.valueOf(value)));
 
-        for (String key : choice.keySet()) {
-            hashMap.put(key, String.valueOf(choice.get(key)));
-        }
         JSONObject jsonObject = new JSONObject(hashMap);
         JSONArray jsonArray = new JSONArray("[" + jsonObject + "]");
 
         roomUserService.setUserVotes(roomId, userId, jsonArray);
         String successMessage = "{" + "\"message\":\"Your votes have been saved successfully\"" + "}";
-        return Response.status(Response.Status.CREATED).entity(successMessage).build();
+        return Response.status(Response.Status.OK).entity(successMessage).build();
     }
 
     @GET
@@ -352,7 +350,7 @@ public class RoomRestService {
         //Add the genres
         roomUserService.setUserGenres(roomId, userId, genres);
         String successMessage = "{" + "\"message\":\"The genres have been set successfully\"" + "}";
-        return Response.status(Response.Status.CREATED).entity(successMessage).build();
+        return Response.status(Response.Status.OK).entity(successMessage).build();
     }
 
     @GET
