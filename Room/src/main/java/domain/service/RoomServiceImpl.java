@@ -2,8 +2,8 @@ package domain.service;
 
 import domain.model.Room;
 import domain.model.Room_User;
-import domain.model.Users;
 import domain.model.Singleton;
+import domain.model.Users;
 import lombok.extern.java.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -135,10 +135,9 @@ public class RoomServiceImpl implements RoomService {
     		em.remove(room);
 
     	//Delete all roomUser records associated
-		List<Room_User> roomUsers = roomUserService.getAll();
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
     	for (Room_User roomUser : roomUsers) {
-    		if (Objects.equals(roomUser.getRoomId(), roomId))
-    			em.remove(roomUser);
+    		em.remove(roomUser);
 		}
 	}
 
@@ -174,28 +173,6 @@ public class RoomServiceImpl implements RoomService {
 	@Override
 	public String getMovieWithMostVotes(String roomId) {
     	log.info("Get the index of the movie with the most votes");
-		List<Room_User> roomUsers = roomUserService.getAll();
-    	final int numberOfUsers = roomUserService.countRoomUsers(roomId);
-    	int counter = 0;
-
-		int[][] scores = new int[numberOfUsers][];
-		for (Room_User roomUser : roomUsers) {
-			String userVote = roomUser.getVotes();
-			int[] array = Arrays.stream(userVote.substring(1, userVote.length()-1).split(",")).mapToInt(Integer::parseInt).toArray();
-			scores[counter] = array;
-			counter++;
-		}
-
-		int maxMovies = 5;
-		Integer[] index = new Integer[] {0, 0, 0, 0, 0};
-		for (int[] score : scores) {
-			for (int j = 0; j < maxMovies; j++) {
-				index[j] += score[j];
-			}
-		}
-		final int max = Collections.max(Arrays.asList(index));
-		final int movieIndex = Arrays.asList(index).indexOf(max);
-
 		Singleton singleton = Singleton.getInstance();
 		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
 		JSONObject jsonObject = roomMoviesData.get(roomId);
@@ -203,28 +180,49 @@ public class RoomServiceImpl implements RoomService {
 		if (jsonObject == null)
 			return "{" + String.format("\"error\":\"No data for room %s\"", roomId) + "}";
 
-		return jsonObject.getJSONObject(String.valueOf(movieIndex)).toString();
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
+    	HashMap<String, Integer> index = new HashMap<>();
+
+		for (Room_User roomUser : roomUsers) {
+			String userVote = roomUser.getVotes();
+			JSONArray votes = new JSONArray(userVote);
+			for (int i = 0; i < votes.length(); i++) {
+				JSONObject movieData = votes.getJSONObject(i);
+				String movieId = movieData.keys().next();
+				Integer movieScore = movieData.getInt(movieId);
+				if (!index.containsKey(movieId)) {
+					index.put(movieId, movieScore);
+				}
+				else {
+					Integer updatedScore = index.get(movieId) + movieScore;
+					index.put(movieId, updatedScore);
+				}
+			}
+		}
+
+		String movieIdWithMostVotes = Collections.max(index.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
+
+		return (jsonObject.getJSONObject(movieIdWithMostVotes) != null) ? jsonObject.getJSONObject(movieIdWithMostVotes).toString() : "{" + String.format("\"error\":\"No data for movie %s\"", movieIdWithMostVotes) + "}";
 	}
 
 	@Override
+	@Transactional
 	public String getMovies(String roomId, int userId) {
 		log.info("Get movies from recommendation service");
 		LinkedHashMap<Integer, Integer> index = new LinkedHashMap<>();
-		List<Room_User> roomUsers = roomUserService.getAll();
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
 		Integer[] genresIdsWithTheMostOccurrences = {0, 0, 0};
 		for (Room_User roomUser : roomUsers) {
-			if (Objects.equals(roomUser.getRoomId(), roomId)){
-				String userGenres = roomUser.getGenres();
-				List<String> genres = Arrays.asList(userGenres.split(","));
-				boolean areNumbers = genres.stream().allMatch(this::isInteger);
-				if (!areNumbers)
-					continue;
+			String userGenres = roomUser.getGenres();
+			List<String> genres = Arrays.asList(userGenres.split(","));
+			boolean areNumbers = genres.stream().allMatch(this::isInteger);
+			if (!areNumbers)
+				continue;
 
-				List<Integer> integers = Arrays.stream(userGenres.split(",")).map(Integer::parseInt).collect(Collectors.toList());
-				for (Integer id : integers) {
-					Integer value = index.get(id);
-					index.put(id, (value == null) ? 1 : ++value);
-				}
+			List<Integer> integers = Arrays.stream(userGenres.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+			for (Integer id : integers) {
+				Integer value = index.get(id);
+				index.put(id, (value == null) ? 1 : ++value);
 			}
 		}
 
@@ -267,16 +265,18 @@ public class RoomServiceImpl implements RoomService {
 		JSONArray jsonArray = new JSONArray(response);
 		JSONObject data = new JSONObject();
 
-		// TODO store "movieId":movieData as key/value pair in hashmap
-
 		for (int i = 0; i < jsonArray.length(); i++) {
 			JSONObject movie = jsonArray.getJSONObject(i);
-			data.put(String.valueOf(i), movie);
-
+			String movieId = String.valueOf(movie.getInt("id"));
+			data.put(movieId, movie);
 		}
+
 		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
 		roomMoviesData.put(roomId, data);
 		singleton.setHashMap(roomMoviesData);
+
+		Room r = get(roomId);
+		r.setNumberOfMovies(jsonArray.length());
 
 		return response;
 	}
@@ -292,12 +292,9 @@ public class RoomServiceImpl implements RoomService {
 		log.info("Get all users in a room");
 		ArrayList<Integer> validUsersIds = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
-		List<Room_User> roomUsers = roomUserService.getAll();
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
 
 		for (Room_User roomUser : roomUsers) {
-			if (!(Objects.equals(roomUser.getRoomId(), roomId)))
-				continue;
-
 			validUsersIds.add(roomUser.getUserId());
 		}
 

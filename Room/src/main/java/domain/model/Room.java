@@ -16,7 +16,7 @@ public class Room {
 	private int roomAdminId;
 	@NotNull
 	private boolean roomClosed = false;
-
-	//TODO try to implement a list of users
+	@NotNull
+	private int numberOfMovies = 0;
 
 }

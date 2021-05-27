@@ -1,20 +1,23 @@
 package api.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import domain.model.Room;
 import domain.model.Room_User;
-import domain.model.Vote;
 import domain.service.RoomService;
 import domain.service.RoomUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @ApplicationScoped
@@ -270,31 +273,40 @@ public class RoomRestService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get and save user votes")
-    public Response setUserVotes(Vote body) {
+    public Response setUserVotes(LinkedHashMap<String, Object> body) {
         //Get roomId/userId and handle errors
-        int userId = body.getUserId();
-        String roomId = body.getRoomId();
+        String roomId = (String) body.get("roomId");
+        Integer userId = (Integer) body.get("userId");
 
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
         //Get user choice
-        int[] choice = body.getChoice();
+        ObjectMapper objectMapper = new ObjectMapper();
+        @SuppressWarnings("unchecked")
+        LinkedHashMap<String, Integer> choice = objectMapper.convertValue(body.get("choice"), LinkedHashMap.class);
 
         //Handle errors with array
-        if (choice == null || !choice.getClass().isArray()) {
+        if (choice == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
-        int length = 5;
-        if (choice.length != length) {
+        int length = roomService.get(roomId).getNumberOfMovies();
+        if (choice.size() != length) {
             String errorMessage = "{" + String.format("\"error\":\"Your array should be of length %d\"", length) + "}";
             return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
         }
 
-        String votes = Arrays.toString(choice);
-        roomUserService.setUserVotes(roomId, userId, votes);
+        HashMap<String, String> hashMap = new HashMap<>();
+
+        for (String key : choice.keySet()) {
+            hashMap.put(key, String.valueOf(choice.get(key)));
+        }
+        JSONObject jsonObject = new JSONObject(hashMap);
+        JSONArray jsonArray = new JSONArray("[" + jsonObject + "]");
+
+        roomUserService.setUserVotes(roomId, userId, jsonArray);
         String successMessage = "{" + "\"message\":\"Your votes have been saved successfully\"" + "}";
         return Response.status(Response.Status.CREATED).entity(successMessage).build();
     }

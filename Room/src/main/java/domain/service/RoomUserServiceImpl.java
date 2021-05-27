@@ -3,6 +3,8 @@ package domain.service;
 import lombok.extern.java.Log;
 
 import domain.model.Room_User;
+import org.json.JSONArray;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -97,11 +99,10 @@ public class RoomUserServiceImpl implements RoomUserService {
 
     @Override
     @Transactional
-    public void setUserVotes(String roomId, int userId, String votes) {
-        // TODO Change votes representation in database
+    public void setUserVotes(String roomId, int userId, JSONArray choice) {
         log.info("Set user votes in a room");
         Room_User roomUser = get(roomId, userId);
-        votes = votes.replaceAll("\\s", "");
+        String votes = choice.toString();
         roomUser.setVotes(votes);
     }
 
@@ -116,5 +117,16 @@ public class RoomUserServiceImpl implements RoomUserService {
             }
         }
         return counter;
+    }
+
+    @Override
+    public List<Room_User> getAllFromRoomId(String roomId) {
+        log.info("Retrieve all roomUsers associated to a room");
+        CriteriaBuilder builder = em.getCriteriaBuilder();
+        CriteriaQuery<Room_User> criteria = builder.createQuery( Room_User.class );
+        criteria.from(Room_User.class);
+        List<Room_User> roomUsers = em.createQuery( criteria ).getResultList();
+        roomUsers.removeIf(roomUser -> !Objects.equals(roomUser.getRoomId(), roomId));
+        return roomUsers;
     }
 }
