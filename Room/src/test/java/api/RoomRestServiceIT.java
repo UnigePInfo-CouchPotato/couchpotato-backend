@@ -51,7 +51,8 @@ class RoomRestServiceIT {
                 .statusCode(HttpStatus.SC_OK)
                 .body("roomId", equalTo("Fgf2NLjhh9mx"))
                 .body("roomAdminId", equalTo(6))
-                .body("roomClosed", equalTo(true));
+                .body("roomClosed", equalTo(true))
+                .body("numberOfMovies", equalTo(0));
     }
 
     @Test
