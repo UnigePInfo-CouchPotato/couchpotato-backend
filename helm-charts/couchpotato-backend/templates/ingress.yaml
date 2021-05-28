@@ -15,7 +15,7 @@ spec:
       - path: /api/v1/users(/|$)(.*)
         backend:
           serviceName: {{ include "couchpotato.fullname" . }}-usermanagement-service
-          servicePort: 28080    
+          servicePort: 28080
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -33,27 +33,6 @@ spec:
       paths:
       - path: /api/v1/rooms(/|$)(.*)
         backend:
-          serviceName: {{ include "couchpotato.fullname" . }}-rooms-service
+          serviceName: {{ include "couchpotato.fullname" . }}-room-service
           servicePort: 28080    
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ingress-resource-backend
-spec:
-  defaultBackend:
-    resource:
-      apiGroup: k8s.example.com
-      kind: StorageBucket
-      name: static-assets
-  rules:
-    - http:
-        paths:
-          - path: /icons
-            pathType: ImplementationSpecific
-            backend:
-              resource:
-                apiGroup: k8s.example.com
-                kind: StorageBucket
-                name: icon-assets
   
