@@ -5,6 +5,7 @@ import domain.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -33,6 +34,18 @@ public class UserManagementRestService {
     private final LinkedHashMap<String, String> fakeCredentials = new LinkedHashMap<String, String>(){{
         put("John", "johnDoeHashedPassword");
     }};
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response welcome() {
+        return Response.status(Response.Status.OK).entity((
+            new JSONObject(){{
+              put("service", "user-mgmt");
+              put("message", "Welcome!");
+            }}
+        ).toString()).build();
+    }
+
 
     @POST
     @Path("/v0/register")
