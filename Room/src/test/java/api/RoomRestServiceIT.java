@@ -8,6 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import domain.model.Room;
 import domain.model.Room_User;
 import org.apache.http.HttpStatus;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -27,7 +28,8 @@ class RoomRestServiceIT {
                 .get("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body(containsString("Welcome to the room service"));
+                .body("service", equalTo("room"))
+                .body("message", equalTo("Welcome!"));
     }
 
     @Test

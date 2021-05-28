@@ -88,9 +88,14 @@ public class RoomRestService {
     }
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String welcome() {
-        return "Welcome to the room service";
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response welcome() {
+        return Response.status(Response.Status.OK).entity((
+          new JSONObject(){{
+              put("service", "room");
+              put("message", "Welcome!");
+          }}
+        ).toString()).build();
     }
 
     @GET
