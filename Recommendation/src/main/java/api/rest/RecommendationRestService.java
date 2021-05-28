@@ -7,6 +7,7 @@ import domain.service.RecommendationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -27,6 +28,17 @@ public class RecommendationRestService {
     // http://localhost:12080/recommendation/
     @Inject
     private RecommendationService recommendationService;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response welcome() {
+        return Response.status(Response.Status.OK).entity((
+          new JSONObject(){{
+              put("service", "recommendation");
+              put("message", "Welcome!");
+          }}
+        ).toString()).build();
+    }
 
     @GET
     @Path("/genres")
