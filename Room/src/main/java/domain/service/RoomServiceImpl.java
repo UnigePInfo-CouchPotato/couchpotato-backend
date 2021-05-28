@@ -184,9 +184,8 @@ public class RoomServiceImpl implements RoomService {
 		for (Room_User roomUser : roomUsers) {
 			String userVote = roomUser.getVotes();
 			JSONArray votes = new JSONArray(userVote);
-			for (int i = 0; i < votes.length(); i++) {
-				JSONObject movieData = votes.getJSONObject(i);
-				String movieId = movieData.keys().next();
+			JSONObject movieData = votes.getJSONObject(0);
+			for (String movieId : movieData.keySet()) {
 				Integer movieScore = movieData.getInt(movieId);
 				if (!index.containsKey(movieId)) {
 					index.put(movieId, movieScore);
