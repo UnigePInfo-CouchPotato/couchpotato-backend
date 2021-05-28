@@ -176,7 +176,7 @@ public class RoomServiceImpl implements RoomService {
 		JSONObject jsonObject = roomMoviesData.get(roomId);
 
 		if (jsonObject == null)
-			return "{" + String.format("\"error\":\"No data for room %s\"", roomId) + "}";
+			return "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
 
 		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
     	HashMap<String, Integer> index = new HashMap<>();
@@ -198,8 +198,11 @@ public class RoomServiceImpl implements RoomService {
 		}
 
 		String movieIdWithMostVotes = Collections.max(index.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
+		JSONObject movie = jsonObject.getJSONObject(movieIdWithMostVotes);
+		if (movie == null || movie.isEmpty() || movie.isNull(movieIdWithMostVotes))
+			return "{" + String.format("\"message\":\"No data for movie %s\"", movieIdWithMostVotes) + "}";
 
-		return (jsonObject.getJSONObject(movieIdWithMostVotes) != null) ? jsonObject.getJSONObject(movieIdWithMostVotes).toString() : "{" + String.format("\"error\":\"No data for movie %s\"", movieIdWithMostVotes) + "}";
+		return movie.toString();
 	}
 
 	@Override
@@ -223,13 +226,13 @@ public class RoomServiceImpl implements RoomService {
 			}
 		}
 
-		// TODO Check if hashmap index is empty
+		if (index.size() < 3) {
+			return "{" + "\"message\":\"Please set at least 3 genres\"" + "}";
+		}
 
 		List<Integer> indexValues = new ArrayList<>(index.values());
 		indexValues.sort(Collections.reverseOrder());
 		int count = 0;
-
-		// TODO Make sure there are at least 3 index values (i.e. 3 genres ids)
 
 		while (count < 3) {
 			Stream<Integer> keyStream = keys(index, indexValues.get(count));
