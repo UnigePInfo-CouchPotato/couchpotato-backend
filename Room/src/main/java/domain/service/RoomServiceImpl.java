@@ -17,8 +17,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @ApplicationScoped
 @Log
@@ -26,8 +25,6 @@ public class RoomServiceImpl implements RoomService {
 
     @PersistenceContext(unitName = "RoomPU")
     private EntityManager em;
-
-    private static int counter = 0;
 
     @Inject
 	private RoomUserService roomUserService;
@@ -41,10 +38,15 @@ public class RoomServiceImpl implements RoomService {
     	this.em = em;
 	}
 
-	private String makeRequest(String url, String mediaType) {
+	/*CONSTANTS*/
+	private static final String USER_MANAGEMENT_SERVICE_URL = "http://usermanagement-service:28080/users/";
+
+	private String createID() { return UUID.randomUUID().toString().substring(24); }
+
+	private String makeRequest(String url) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
-		Response response = webTarget.request(mediaType).get();
+		Response response = webTarget.request(MediaType.APPLICATION_JSON).get();
 
 		if (response.getStatus() != 200) {
 			return "Failed : HTTP error code : " + response.getStatus();
@@ -54,16 +56,9 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public String getWelcomeMessage() {
-    	log.info("Get welcome message from user management");
-    	final String url = "http://usermanagement-service:28080/users";
-    	return makeRequest(url, MediaType.TEXT_PLAIN);
-	}
-
-	@Override
 	public Users getRoomAdmin(int userId) {
 		log.info("Get information on room administrator from user management");
-		final String url = "http://usermanagement-service:28080/users/" + userId;
+		final String url = USER_MANAGEMENT_SERVICE_URL + userId;
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
 		Response response = webTarget.request(MediaType.APPLICATION_JSON).get();
@@ -71,55 +66,54 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public boolean isRoomAdmin(int roomId, int userId) {
-    	log.info("Check if user is the administrator of the room");
+	public boolean isRoomAdmin(String roomId, int userId) {
+    	log.info("Check if user is the administrator of a room");
 		Room room = get(roomId);
 		return room.getRoomAdminId() == userId;
 	}
 
 	@Override
 	@Transactional
-	public int createRoom(int userId) {
+	public String createRoom(int userId) {
     	log.info("Create a room, set the administrator and add the user");
 		Room room = new Room();
 		room.setRoomAdminId(userId);
-		room.setRoomId(counter);
+		room.setRoomId(createID());
 		em.persist(room);
 		em.flush();
-		counter++;
-		int createdRoomId = room.getRoomId();
+		String createdRoomId = room.getRoomId();
 		roomUserService.create(createdRoomId, userId);
 		return createdRoomId;
 	}
 
 	@Override
-	public void joinRoom(int roomId, int userId) {
-    	log.info("Add user to room");
+	public void joinRoom(String roomId, int userId) {
+    	log.info("Add user to a room");
 		roomUserService.create(roomId, userId);
 	}
 
 	@Override
 	@Transactional
-	public void deleteRoom(int roomId) {
-    	log.info("Deleting the room");
+	public void deleteRoom(String roomId) {
+    	log.info("Delete a room");
     	//Delete room
     	Room room = get(roomId);
     	if (room != null)
     		em.remove(room);
 
-    	//Delete all room_user records associated
-		List<Room_User> room_users = roomUserService.getAll();
-    	for (Room_User room_user : room_users) {
-    		if (room_user.getRoomId() == roomId)
-    			em.remove(room_user);
+    	//Delete all roomUser records associated
+		List<Room_User> roomUsers = roomUserService.getAll();
+    	for (Room_User roomUser : roomUsers) {
+    		if (Objects.equals(roomUser.getRoomId(), roomId))
+    			em.remove(roomUser);
 		}
 	}
 
 	@Override
 	@Transactional
-	public boolean closeRoom(int roomId) {
-    	log.info("Closing the room");
-    	//If room is already closed, return false, else return true
+	public boolean closeRoom(String roomId) {
+    	log.info("Close a room");
+    	//If room is already closed, return false else return true
     	Room room = get(roomId);
     	if (room.isRoomClosed())
     		return false;
@@ -131,44 +125,71 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public boolean isUserIdInvalid(int userId) {
-    	log.info("Checking if the user id is valid");
-		final String url = "http://usermanagement-service:28080/users/exists/" + userId;
-		String response = makeRequest(url, MediaType.APPLICATION_JSON);
+    	log.info("Check if the user id is valid");
+		final String url = USER_MANAGEMENT_SERVICE_URL + userId + "/exists";
+		String response = makeRequest(url);
 		return !Boolean.parseBoolean(response);
 	}
 
 	@Override
-	public boolean isRoomClosed(int roomId) {
+	public boolean isRoomClosed(String roomId) {
 		log.info("Check if room is closed");
 		Room room = get(roomId);
 		return room.isRoomClosed();
 	}
 
 	@Override
-	public boolean isUserInRoom(int roomId, int userId) {
-		log.info("Checks if user is already in the room");
+	public int getMovieWithMostVotes(String roomId) {
+    	log.info("Get the index of the movie with the most votes");
+		List<Room_User> roomUsers = roomUserService.getAll();
+    	final int numberOfUsers = roomUserService.countRoomUsers(roomId);
+    	int counter = 0;
+
+		int[][] scores = new int[numberOfUsers][];
+		for (Room_User roomUser : roomUsers) {
+			String userVote = roomUser.getVotes();
+			int[] array = Arrays.stream(userVote.substring(1, userVote.length()-1).split(", ")).mapToInt(Integer::parseInt).toArray();
+			scores[counter] = array;
+			counter++;
+		}
+
+		int maxMovies = 5;
+		Integer[] index = new Integer[] {0, 0, 0, 0, 0};
+		for (int[] score : scores) {
+			for (int j = 0; j < maxMovies; j++) {
+				index[j] += score[j];
+			}
+		}
+		final int max = Collections.max(Arrays.asList(index));
+
+		return Arrays.asList(index).indexOf(max);
+	}
+
+	@Override
+	public boolean isUserInRoom(String roomId, int userId) {
+		log.info("Check if user is already in a room");
 		return roomUserService.exists(roomId, userId);
 	}
 
 	@Override
-	public String getRoomUsers(int roomId) {
+	public String getRoomUsers(String roomId) {
 		log.info("Get all users in a room");
 		ArrayList<Integer> validUsersIds = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
-		List<Room_User> room_users = roomUserService.getAll();
+		List<Room_User> roomUsers = roomUserService.getAll();
 
-		for (Room_User room_user : room_users) {
-			if (!(room_user.getRoomId() == roomId))
+		for (Room_User roomUser : roomUsers) {
+			if (!(Objects.equals(roomUser.getRoomId(), roomId)))
 				continue;
 
-			validUsersIds.add(room_user.getUserId());
+			validUsersIds.add(roomUser.getUserId());
 		}
 
 		stringBuilder.append("[");
 		int count = 0;
 		for (Integer validUserId : validUsersIds) {
-			final String url = "http://usermanagement-service:28080/users/" + validUserId;
-			String str = makeRequest(url, MediaType.APPLICATION_JSON);
+			final String url = USER_MANAGEMENT_SERVICE_URL + validUserId;
+			String str = makeRequest(url);
 			stringBuilder.append(str);
 			count++;
 			if (count < validUsersIds.size())
@@ -189,7 +210,8 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public Room get(int roomId) {
+	public Room get(String roomId) {
+		log.info("Get a specific room");
 		return em.find(Room.class, roomId);
 	}
 
@@ -204,18 +226,8 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	@Transactional
-	public void update(Room room) {
-		Room r = get(room.getRoomId());
-		if (r != null) {
-			em.merge(room);
-		} else {
-			throw new IllegalArgumentException("Room does not exist : " + room.getRoomId());
-		}
-	}
-
-	@Override
-	public boolean exists(int roomId) {
+	public boolean exists(String roomId) {
+		log.info("Check if a room exists");
 		Room r = em.find(Room.class, roomId);
 		return (r != null);
 	}

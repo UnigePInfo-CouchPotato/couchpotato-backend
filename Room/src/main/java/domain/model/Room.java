@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 public class Room {
 
 	@Id
-	private int roomId;
+	private String roomId;
 	@NotNull
 	private int roomAdminId;
 	@NotNull

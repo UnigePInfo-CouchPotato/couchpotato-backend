@@ -1,5 +1,6 @@
 package domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.Id;
@@ -15,6 +16,7 @@ public class Users {
 	@NotNull
 	private String email;
 	@NotNull
+	@JsonIgnore
 	private String saltedPwd;
 	@NotNull
 	private Date registrationDate;
