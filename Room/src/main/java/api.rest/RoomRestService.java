@@ -1,20 +1,23 @@
 package api.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import domain.model.Room;
 import domain.model.Room_User;
-import domain.model.Vote;
 import domain.service.RoomService;
 import domain.service.RoomUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @ApplicationScoped
@@ -85,9 +88,14 @@ public class RoomRestService {
     }
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String welcome() {
-        return "Welcome to the room service";
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response welcome() {
+        return Response.status(Response.Status.OK).entity((
+          new JSONObject(){{
+              put("service", "room");
+              put("message", "Welcome!");
+          }}
+        ).toString()).build();
     }
 
     @GET
@@ -179,6 +187,8 @@ public class RoomRestService {
         return Response.status(Response.Status.OK).entity(roomService.getRoomAdmin(adminId)).build();
     }
 
+
+
     @GET
     @Path("/create")
     @Produces(MediaType.APPLICATION_JSON)
@@ -224,8 +234,7 @@ public class RoomRestService {
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
-
-        //Check if user is admin of the room
+        //Check if  user is admin of the room
         if(!roomService.isRoomAdmin(roomId, userId)) {
             String errorMessage = "{" + String.format("\"error\":\"You are not the administrator of the room %s\"", roomId) + "}";
             return Response.status(Response.Status.FORBIDDEN).entity(errorMessage).build();
@@ -269,33 +278,40 @@ public class RoomRestService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get and save user votes")
-    public Response setUserVotes(Vote body) {
+    public Response setUserVotes(LinkedHashMap<String, Object> body) {
         //Get roomId/userId and handle errors
-        int userId = body.getUserId();
-        String roomId = body.getRoomId();
+        String roomId = (String) body.get("roomId");
+        Integer userId = (Integer) body.get("userId");
 
         Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
         //Get user choice
-        int[] choice = body.getChoice();
+        ObjectMapper objectMapper = new ObjectMapper();
+        @SuppressWarnings("unchecked")
+        LinkedHashMap<String, Integer> choice = objectMapper.convertValue(body.get("choice"), LinkedHashMap.class);
 
         //Handle errors with array
-        if (choice == null || !choice.getClass().isArray()) {
+        if (choice == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
         }
 
-        int length = 5;
-        if (choice.length != length) {
+        int length = roomService.get(roomId).getNumberOfMovies();
+        if (choice.size() != length) {
             String errorMessage = "{" + String.format("\"error\":\"Your array should be of length %d\"", length) + "}";
             return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
         }
 
-        String votes = Arrays.toString(choice);
-        roomUserService.setUserVotes(roomId, userId, votes);
+        HashMap<String, String> hashMap = new HashMap<>();
+        choice.forEach((key, value) -> hashMap.put(key, String.valueOf(value)));
+
+        JSONObject jsonObject = new JSONObject(hashMap);
+        JSONArray jsonArray = new JSONArray("[" + jsonObject + "]");
+
+        roomUserService.setUserVotes(roomId, userId, jsonArray);
         String successMessage = "{" + "\"message\":\"Your votes have been saved successfully\"" + "}";
-        return Response.status(Response.Status.CREATED).entity(successMessage).build();
+        return Response.status(Response.Status.OK).entity(successMessage).build();
     }
 
     @GET
@@ -307,10 +323,9 @@ public class RoomRestService {
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        final int movieIndex = roomService.getMovieWithMostVotes(roomId);
+        final String movie = roomService.getMovieWithMostVotes(roomId);
 
-        String successMessage = "{" + "\"index\":" + movieIndex + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        return Response.status(Response.Status.OK).entity(movie).build();
     }
 
     @GET
@@ -340,7 +355,20 @@ public class RoomRestService {
         //Add the genres
         roomUserService.setUserGenres(roomId, userId, genres);
         String successMessage = "{" + "\"message\":\"The genres have been set successfully\"" + "}";
-        return Response.status(Response.Status.CREATED).entity(successMessage).build();
+        return Response.status(Response.Status.OK).entity(successMessage).build();
+    }
+
+    @GET
+    @Path("/results")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get the movies according to the users preferences")
+    public Response getMovies(@QueryParam("roomId") String roomId, @QueryParam("userId") @DefaultValue("-1") int userId) {
+        Response response = handleRoomIdAndUserIdQueryParams(roomId, userId, true);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        String movies = roomService.getMovies(roomId, userId);
+        return Response.status(Response.Status.OK).entity(movies).build();
     }
 
 }

@@ -8,6 +8,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import domain.model.Room;
 import domain.model.Room_User;
 import org.apache.http.HttpStatus;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -27,7 +28,8 @@ class RoomRestServiceIT {
                 .get("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body(containsString("Welcome to the room service"));
+                .body("service", equalTo("room"))
+                .body("message", equalTo("Welcome!"));
     }
 
     @Test
@@ -51,7 +53,8 @@ class RoomRestServiceIT {
                 .statusCode(HttpStatus.SC_OK)
                 .body("roomId", equalTo("Fgf2NLjhh9mx"))
                 .body("roomAdminId", equalTo(6))
-                .body("roomClosed", equalTo(true));
+                .body("roomClosed", equalTo(true))
+                .body("numberOfMovies", equalTo(0));
     }
 
     @Test
@@ -104,7 +107,7 @@ class RoomRestServiceIT {
         assertThat(roomUsers[20].getRoomId(), equalTo("Fgf2NLjhh9mx"));
 
         assertThat(roomUsers[0].getUserId(), equalTo(1));
-        assertThat(roomUsers[0].getGenres(), equalTo("action,comedy"));
+        assertThat(roomUsers[0].getGenres(), equalTo("28,35"));
         assertThat(roomUsers[0].getVotes(), equalTo("[2, 5, 1, -1, 0]"));
     }
 

@@ -16,5 +16,7 @@ public class Room {
 	private int roomAdminId;
 	@NotNull
 	private boolean roomClosed = false;
+	@NotNull
+	private int numberOfMovies = 0;
 
 }
