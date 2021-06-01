@@ -1,11 +1,14 @@
 package api.rest;
 
+import domain.model.Preference;
 import domain.model.Users;
+import domain.service.PreferenceService;
 import domain.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -24,10 +27,40 @@ import java.util.Random;
 })
 public class UserManagementRestService {
 
-    @Inject
-    private UserService userService;
+    @Inject private UserService userService;
+    @Inject private PreferenceService prefService;
+
+//  Petter:
+//  Temporary test: get preferences of one user by his id in the url
+//  NOTE: This will change with oauth2 as we will get the user info from the JWT token (ID token)
+//  TODO: Find out how to integrate JWT token into the requests and retrieve their fields (called "claims")
+    @GET
+    @Path("{id}/get-preferences")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get the preferences for a user from his userId")
+    public Response getPreferences(@PathParam("id") int userId) {
+        Preference pref = prefService.get(userId);
+//      TODO: Genre ids should ideally be validated in the backend before just storing them as a raw JSONArray string.
+//      If time permits we should modify this method and the domain model to to convert the JSONArray to int[] array
+//      and iterate the genreIds to validate before storing the whole array string in the genreIds field of the Preference table.
+        JSONArray genreIdsArray = new JSONArray(pref.getGenreIds());
+        return Response.status(Response.Status.OK).entity((
+                new JSONObject(){{
+                    put("genreIds", genreIdsArray);
+                }}
+        ).toString()).build();
+    }
+
+//  TODO: other requests (set preferences, ...)
 
 
+
+
+
+
+
+
+    /* --------- OLD CODE --------- */
     /* --------- Mock API --------- */
 
     // Fake credentials for login/register in pseudo-db
@@ -148,7 +181,6 @@ public class UserManagementRestService {
     public boolean checkUserExists(@PathParam("id") int userId) { return userService.exists(userId);  }
 
     @PUT
-//    @Path("users/")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update a given user")
     public Response update(Users newUser) {
@@ -176,19 +208,6 @@ public class UserManagementRestService {
         }
         return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
     }
-
-    /* --------- Preferences REQUESTS --------- */
-    /*
-    @GET
-    @Path("{id}/preferences")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a specific user")
-    public Users get(@PathParam("id") int userId) {
-        return userService.get(userId);
-    }
-    - add path for post and put?
-    -
-    */
 
 
     /* --------- TEST REQUESTS  --------- */

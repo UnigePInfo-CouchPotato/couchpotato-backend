@@ -1,29 +1,27 @@
-drop table Users if exists;
--- drop sequence if exists USERS_SEQ;
--- create sequence USERS_SEQ start with 1 increment by 50;
--- CREATE SEQUENCE IF NOT EXISTS USERS_SEQ
---     INCREMENT 1
---     MINVALUE 1
---     MAXVALUE 20
---     START 1;
-create table Users (
-        id bigint not null,
-        username varchar(31) not null,
-        email varchar(31) not null,
-        saltedPwd varchar(31) not null,
-        registrationDate timestamp,
-        primary key (id)
-);
--- INSERT INTO Users (id, username, email, saltedPwd, registrationDate) values ( USERS_SEQ.nextval, 'azeem', 'azeem@gmail.com', 'azeemarshad', PARSEDATETIME('17-09-2017','yyyy-dd-mm','en') );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 1, 'azeem', 'azeem@gmail.com', 'azeemarshad', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 2, 'alice', 'alice@hotmail.com', 'alicesalty', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 3, 'bob', 'bob@gmail.com', 'bobsalty', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 4, 'petpet', 'petpet@hotmail.com', 'petpetsalty', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 5, 'ben', 'ben@gmail.com', 'bensalty', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 6, 'saddam', 'saddam@hotmail.com', 'saddamsalty', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 7, 'trump', 'trump@gmail.com', 'trumpsalty', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 8, 'castro', 'castro@hotmail.com', 'castrosalty', CURRENT_TIMESTAMP );
-INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 9, 'soap', 'soap@gmail.com', 'soapsalty', CURRENT_TIMESTAMP );
+ -- Preference table
+ TRUNCATE TABLE Preference;
+ INSERT INTO Preference (userId, genreIds) VALUES ( 0, '[13, 50, 1, 9, 0]' );
+ INSERT INTO Preference (userId, genreIds) VALUES ( 1, '[26, 1, 12, 2]' );
+
+
+--create table Users (
+--        id bigint not null,
+--        username varchar(31) not null,
+--        email varchar(31) not null,
+--        saltedPwd varchar(31) not null,
+--        registrationDate timestamp,
+--        primary key (id)
+--);
+---- INSERT INTO Users (id, username, email, saltedPwd, registrationDate) values ( USERS_SEQ.nextval, 'azeem', 'azeem@gmail.com', 'azeemarshad', PARSEDATETIME('17-09-2017','yyyy-dd-mm','en') );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 1, 'azeem', 'azeem@gmail.com', 'azeemarshad', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 2, 'alice', 'alice@hotmail.com', 'alicesalty', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 3, 'bob', 'bob@gmail.com', 'bobsalty', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 4, 'petpet', 'petpet@hotmail.com', 'petpetsalty', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 5, 'ben', 'ben@gmail.com', 'bensalty', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 6, 'saddam', 'saddam@hotmail.com', 'saddamsalty', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 7, 'trump', 'trump@gmail.com', 'trumpsalty', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 8, 'castro', 'castro@hotmail.com', 'castrosalty', CURRENT_TIMESTAMP );
+--INSERT INTO Users(id, username, email, saltedPwd, registrationDate) values( 9, 'soap', 'soap@gmail.com', 'soapsalty', CURRENT_TIMESTAMP );
 
 
 
