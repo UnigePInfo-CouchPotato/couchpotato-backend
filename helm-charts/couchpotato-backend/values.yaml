@@ -9,6 +9,11 @@ image:
   tag: latest
   pullPolicy: Always
 
+oauth:
+  OAUTH2_PROXY_COOKIE_SECRET: r9yE06MfOPHcaOuao0-72g==
+  OAUTH2_PROXY_CLIENT_ID: OAUTH2_PROXY_CLIENT_ID
+  OAUTH2_PROXY_CLIENT_SECRET: OAUTH2_PROXY_CLIENT_SECRET
+  baseUrl: couchpotato.eu.auth0.com/
 
 usermanagement-database:
   driver_name: org.postgresql

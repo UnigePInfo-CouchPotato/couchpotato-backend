@@ -2,58 +2,73 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /user-management/$2
+    nginx.ingress.kubernetes.io/rewrite-target: /users/$2
+    nginx.ingress.kubernetes.io/auth-response-headers: Authorization
+    nginx.ingress.kubernetes.io/auth-url: "https://$host/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
+      access_by_lua_block {
+        if ngx.var.name_upstream_1 ~= "" then
+          ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+        end
+      }
   name: {{ include "couchpotato.fullname" . }}.ingress-api-user-management
-  namespace: {{ .Release.Namespace }} 
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "couchpotato.labels" . | nindent 4 }}
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
   rules:
-  - http:
+  - host: pinfo2.unige.ch
+    http:
       paths:
-      - path: /api/v1/users(/|$)(.*)
+      - path: /users(/|$)(.*)
         backend:
           serviceName: {{ include "couchpotato.fullname" . }}-usermanagement-service
-          servicePort: 28080    
+          servicePort: 28080
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /rooms/$2
+    nginx.ingress.kubernetes.io/auth-response-headers: Authorization
+    nginx.ingress.kubernetes.io/auth-url: "https://$host/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
+      access_by_lua_block {
+        if ngx.var.name_upstream_1 ~= "" then
+          ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+        end
+      }
   name: {{ include "couchpotato.fullname" . }}.ingress-api-rooms
-  namespace: {{ .Release.Namespace }} 
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "couchpotato.labels" . | nindent 4 }}
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
   rules:
-  - http:
+  - host: pinfo2.unige.ch
+    http:
       paths:
-      - path: /api/v1/rooms(/|$)(.*)
+      - path: /rooms(/|$)(.*)
         backend:
-          serviceName: {{ include "couchpotato.fullname" . }}-rooms-service
-          servicePort: 28080    
+          serviceName: {{ include "couchpotato.fullname" . }}-room-service
+          servicePort: 28080
 ---
-apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: ingress-resource-backend
+  name: oauth2-proxy
+  namespace: {{ .Release.Namespace }}
 spec:
-  defaultBackend:
-    resource:
-      apiGroup: k8s.example.com
-      kind: StorageBucket
-      name: static-assets
   rules:
-    - http:
-        paths:
-          - path: /icons
-            pathType: ImplementationSpecific
-            backend:
-              resource:
-                apiGroup: k8s.example.com
-                kind: StorageBucket
-                name: icon-assets
-  
+  - host: pinfo2.unige.ch
+    http:
+      paths:
+        - backend:
+            serviceName: oauth2-proxy
+            servicePort: 4180
+          path: /oauth2
