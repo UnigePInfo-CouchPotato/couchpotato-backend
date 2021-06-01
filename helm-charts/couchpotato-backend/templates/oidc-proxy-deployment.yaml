@@ -52,11 +52,11 @@ spec:
                 secretKeyRef:
                   key:  OAUTH2_PROXY_CLIENT_SECRET
                   name: {{ .Release.Name }}-auth
-{{/*            - name: OAUTH2_PROXY_COOKIE_SECRET*/}}
-{{/*              valueFrom:*/}}
-{{/*                secretKeyRef:*/}}
-{{/*                  key:  OAUTH2_PROXY_COOKIE_SECRET*/}}
-{{/*                  name: {{ .Release.Name }}-auth*/}}
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key:  OAUTH2_PROXY_COOKIE_SECRET
+                  name: {{ .Release.Name }}-auth
 {{/*TODO : fix bytes error when adding cookie secret to secret.yaml*/}}
 ---
 apiVersion: v1
