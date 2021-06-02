@@ -20,7 +20,7 @@ metadata:
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
   rules:
-  - host: {{ .Values.Ingress.apiHost }}
+  - host: {{ .Values.ingress.apiEndpoint }}
     http:
       paths:
       - path: /users(/|$)(.*)
@@ -50,7 +50,7 @@ metadata:
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
   rules:
-  - host: {{ .Values.Ingress.apiEndpoint }}
+  - host: {{ .Values.ingress.apiEndpoint }}
     http:
       paths:
       - path: /rooms(/|$)(.*)
@@ -65,7 +65,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   rules:
-  - host: {{ .Values.Ingress.apiEndpoint }}
+  - host: {{ .Values.ingress.apiEndpoint }}
     http:
       paths:
         - backend:

@@ -24,10 +24,10 @@ spec:
           name: oauth2-proxy
           args:
             - --provider=oidc
-            - --upstream=https://{{ .Values.Ingress.clientEndpoint }}/
+            - --upstream=https://{{ .Values.ingress.clientEndpoint }}/
             - --http-address=0.0.0.0:4180
             - --cookie-secure=true
-            - --redirect-url=https://{{ .Values.Ingress.apiEndpoint }}/oauth2/callback
+            - --redirect-url=https://{{ .Values.ingress.apiEndpoint }}/oauth2/callback
             - --pass-user-headers=true
             - --set-xauthrequest=true
             - --pass-authorization-header=true
