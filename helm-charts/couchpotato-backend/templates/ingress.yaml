@@ -20,7 +20,7 @@ metadata:
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
   rules:
-  - host: pinfo2.unige.ch
+  - host: {{ .Values.Ingress.apiHost }}
     http:
       paths:
       - path: /users(/|$)(.*)
@@ -50,7 +50,7 @@ metadata:
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
   rules:
-  - host: pinfo2.unige.ch
+  - host: {{ .Values.Ingress.apiEndpoint }}
     http:
       paths:
       - path: /rooms(/|$)(.*)
@@ -65,7 +65,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   rules:
-  - host: pinfo2.unige.ch
+  - host: {{ .Values.Ingress.apiEndpoint }}
     http:
       paths:
         - backend:

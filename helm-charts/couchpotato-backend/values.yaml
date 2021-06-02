@@ -85,6 +85,8 @@ service:
 
 ingress:
   enabled: false
+  clientEndpoint: pinfo2.unige.ch
+  apiEndpoint: api.pinfo2.unige.ch
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
