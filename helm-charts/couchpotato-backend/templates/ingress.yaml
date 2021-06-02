@@ -2,37 +2,73 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /user-management/$2
+    nginx.ingress.kubernetes.io/rewrite-target: /users/$2
+    cert-manager.io/issuer: "letsencrypt-prod"
   name: {{ include "couchpotato.fullname" . }}.ingress-api-user-management
   namespace: {{ .Release.Namespace }} 
   labels:
     {{- include "couchpotato.labels" . | nindent 4 }}
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
+  tls:
+  - hosts:
+    - api.pinfo2.unige.ch
+    secretName: couchpotato-ingress-tls
   rules:
-  - http:
+  - host: api.pinfo2.unige.ch
+    http:
       paths:
-      - path: /api/v1/users(/|$)(.*)
+      - path: /users(/|$)(.*)
         backend:
           serviceName: {{ include "couchpotato.fullname" . }}-usermanagement-service
-          servicePort: 28080
+          servicePort: 28080    
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /rooms/$2
+    cert-manager.io/issuer: "letsencrypt-prod"
   name: {{ include "couchpotato.fullname" . }}.ingress-api-rooms
   namespace: {{ .Release.Namespace }} 
   labels:
     {{- include "couchpotato.labels" . | nindent 4 }}
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
 spec:
+  tls:
+  - hosts:
+    - api.pinfo2.unige.ch
+    secretName: couchpotato-ingress-tls
   rules:
-  - http:
+  - host: api.pinfo2.unige.ch
+    http:
       paths:
-      - path: /api/v1/rooms(/|$)(.*)
+      - path: /rooms(/|$)(.*)
         backend:
           serviceName: {{ include "couchpotato.fullname" . }}-room-service
-          servicePort: 28080    
-  
+          servicePort: 28080
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+  name: {{ include "couchpotato.fullname" . }}.ingress-static
+  namespace: {{ .Release.Namespace }} 
+  labels:
+    {{- include "couchpotato.labels" . | nindent 4 }}
+    {{- include "couchpotato.labels" . | nindent 4 }}.ingress
+spec:
+  tls:
+  - hosts:
+    - pinfo2.unige.ch
+    secretName: couchpotato-ingress-tls
+  rules:
+  - host: pinfo2.unige.ch
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ include "couchpotato.fullname" . }}-web-ui
+          servicePort: 80
+---    
