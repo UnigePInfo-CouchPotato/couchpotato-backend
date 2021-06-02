@@ -16,9 +16,6 @@
       <module name="Microservice1" target="11" />
       <module name="Microservice2" target="11" />
       <module name="Microservice3" target="11" />
-      <module name="Recommendation" target="1.8" />
-      <module name="Room" target="1.8" />
-      <module name="UserManagement" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

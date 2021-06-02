@@ -9,6 +9,11 @@ image:
   tag: latest
   pullPolicy: Always
 
+oauth:
+  OAUTH2_PROXY_COOKIE_SECRET: OAUTH2_PROXY_COOKIE_SECRET
+  OAUTH2_PROXY_CLIENT_ID: OAUTH2_PROXY_CLIENT_ID
+  OAUTH2_PROXY_CLIENT_SECRET: OAUTH2_PROXY_CLIENT_SECRET
+  baseUrl: couchpotato.eu.auth0.com/
 
 usermanagement-database:
   driver_name: org.postgresql
@@ -80,6 +85,8 @@ service:
 
 ingress:
   enabled: false
+  clientEndpoint: pinfo2.unige.ch
+  apiEndpoint: api.pinfo2.unige.ch
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
