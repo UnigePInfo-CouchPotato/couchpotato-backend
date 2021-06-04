@@ -8,9 +8,8 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="UserManagement" />
-        <module name="Recommendation" />
         <module name="Room" />
-
+        <module name="Recommendation" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
