@@ -2,13 +2,13 @@
 
 -- -- Room table
 drop table Room if exists;
-create table Room ( roomId varchar(255) not null, roomAdminId integer not null, roomClosed boolean not null, primary key (roomId));
+create table Room ( roomId varchar(255) not null, roomAdminId integer not null, roomClosed boolean not null, numberOfMovies integer not null, primary key (roomId));
 TRUNCATE TABLE Room;
-INSERT INTO Room (roomId, roomAdminId, roomClosed) VALUES ( 'WN5sgnxYD8tC', 2, FALSE );
-INSERT INTO Room (roomId, roomAdminId, roomClosed) VALUES ( '99rxfyog0a87', 3, FALSE );
-INSERT INTO Room (roomId, roomAdminId, roomClosed) VALUES ( '7b07c2qj7lvc', 7, FALSE );
-INSERT INTO Room (roomId, roomAdminId, roomClosed) VALUES ( 'JC3Tzrx2c1nx', 5, FALSE );
-INSERT INTO Room (roomId, roomAdminId, roomClosed) VALUES ( 'Fgf2NLjhh9mx', 6, TRUE );
+INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( 'WN5sgnxYD8tC', 2, FALSE, 0 );
+INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( '99rxfyog0a87', 3, FALSE, 0 );
+INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( '7b07c2qj7lvc', 7, FALSE, 0 );
+INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( 'JC3Tzrx2c1nx', 5, FALSE, 0 );
+INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( 'Fgf2NLjhh9mx', 6, TRUE, 0 );
 
 
 -- -- Room_User table
