@@ -2,8 +2,11 @@ package domain.service;
 
 import domain.model.Room;
 import domain.model.Room_User;
+import domain.model.Singleton;
 import domain.model.Users;
 import lombok.extern.java.Log;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,6 +21,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 @Log
@@ -40,7 +46,9 @@ public class RoomServiceImpl implements RoomService {
 
 	/*CONSTANTS*/
 	private static final String USER_MANAGEMENT_SERVICE_URL = "http://usermanagement-service:28080/users/";
+	private static final String RECOMMENDATION_SERVICE_URL = "http://recommendation-service:28080/recommendation/";
 
+	/*USEFUL METHODS*/
 	private String createID() { return UUID.randomUUID().toString().substring(24); }
 
 	private String makeRequest(String url) {
@@ -53,6 +61,31 @@ public class RoomServiceImpl implements RoomService {
 		}
 
 		return response.readEntity(String.class);
+	}
+
+	private boolean isInteger(Object object) {
+		if (object instanceof Integer) {
+			return true;
+		}
+		else {
+			String string = object.toString();
+
+			try {
+				Integer.parseInt(string);
+			} catch(Exception e) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private <K, V> Stream<K> keys(Map<K, V> map, V value) {
+		return map
+				.entrySet()
+				.stream()
+				.filter(entry -> value.equals(entry.getValue()))
+				.map(Map.Entry::getKey);
 	}
 
 	@Override
@@ -102,11 +135,8 @@ public class RoomServiceImpl implements RoomService {
     		em.remove(room);
 
     	//Delete all roomUser records associated
-		List<Room_User> roomUsers = roomUserService.getAll();
-    	for (Room_User roomUser : roomUsers) {
-    		if (Objects.equals(roomUser.getRoomId(), roomId))
-    			em.remove(roomUser);
-		}
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
+		roomUsers.forEach(roomUser -> em.remove(roomUser));
 	}
 
 	@Override
@@ -139,30 +169,116 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public int getMovieWithMostVotes(String roomId) {
+	public String getMovieWithMostVotes(String roomId) {
     	log.info("Get the index of the movie with the most votes");
-		List<Room_User> roomUsers = roomUserService.getAll();
-    	final int numberOfUsers = roomUserService.countRoomUsers(roomId);
-    	int counter = 0;
+		Singleton singleton = Singleton.getInstance();
+		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
+		JSONObject jsonObject = roomMoviesData.get(roomId);
 
-		int[][] scores = new int[numberOfUsers][];
+		if (jsonObject == null)
+			return "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
+
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
+    	HashMap<String, Integer> index = new HashMap<>();
+
 		for (Room_User roomUser : roomUsers) {
 			String userVote = roomUser.getVotes();
-			int[] array = Arrays.stream(userVote.substring(1, userVote.length()-1).split(", ")).mapToInt(Integer::parseInt).toArray();
-			scores[counter] = array;
-			counter++;
-		}
-
-		int maxMovies = 5;
-		Integer[] index = new Integer[] {0, 0, 0, 0, 0};
-		for (int[] score : scores) {
-			for (int j = 0; j < maxMovies; j++) {
-				index[j] += score[j];
+			JSONArray votes = new JSONArray(userVote);
+			JSONObject movieData = votes.getJSONObject(0);
+			for (String movieId : movieData.keySet()) {
+				Integer movieScore = movieData.getInt(movieId);
+				if (!index.containsKey(movieId)) {
+					index.put(movieId, movieScore);
+				}
+				else {
+					Integer updatedScore = index.get(movieId) + movieScore;
+					index.put(movieId, updatedScore);
+				}
 			}
 		}
-		final int max = Collections.max(Arrays.asList(index));
 
-		return Arrays.asList(index).indexOf(max);
+		String movieIdWithMostVotes = Collections.max(index.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
+		JSONObject movie = jsonObject.getJSONObject(movieIdWithMostVotes);
+		if (movie == null || movie.isEmpty() || movie.isNull(movieIdWithMostVotes))
+			return "{" + String.format("\"message\":\"No data for movie %s\"", movieIdWithMostVotes) + "}";
+
+		return movie.toString();
+	}
+
+	@Override
+	@Transactional
+	public String getMovies(String roomId, int userId) {
+		log.info("Get movies from recommendation service");
+		LinkedHashMap<Integer, Integer> index = new LinkedHashMap<>();
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
+		Integer[] genresIdsWithTheMostOccurrences = {0, 0, 0};
+		for (Room_User roomUser : roomUsers) {
+			String userGenres = roomUser.getGenres();
+			List<String> genres = Arrays.asList(userGenres.split(","));
+			boolean areNumbers = genres.stream().allMatch(this::isInteger);
+			if (!areNumbers)
+				continue;
+
+			List<Integer> integers = Arrays.stream(userGenres.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+			for (Integer id : integers) {
+				Integer value = index.get(id);
+				index.put(id, (value == null) ? 1 : ++value);
+			}
+		}
+
+		if (index.size() < 3) {
+			return "{" + "\"message\":\"Please set at least 3 genres\"" + "}";
+		}
+
+		List<Integer> indexValues = new ArrayList<>(index.values());
+		indexValues.sort(Collections.reverseOrder());
+		int count = 0;
+
+		while (count < 3) {
+			Stream<Integer> keyStream = keys(index, indexValues.get(count));
+			List<Integer> keys = keyStream.collect(Collectors.toList());
+			int size = keys.size();
+
+			if (size == 1) {
+				genresIdsWithTheMostOccurrences[count] = keys.get(0);
+				index.remove(keys.get(0));
+				count++;
+			}
+			else {
+				for (int i = 0; i < (3 - count); i++) {
+					Collections.shuffle(keys);
+					int randomInt = ThreadLocalRandom.current().nextInt(keys.size());
+					Integer value = keys.get(randomInt);
+					genresIdsWithTheMostOccurrences[count] = value;
+					index.remove(keys.get(randomInt));
+					keys.remove(value);
+					count++;
+				}
+			}
+		}
+
+		String idGenres = Arrays.stream(genresIdsWithTheMostOccurrences).map(String::valueOf).collect(Collectors.joining(","));
+		final String url = RECOMMENDATION_SERVICE_URL + "selectGenres=" + idGenres;
+		String response = makeRequest(url);
+
+		Singleton singleton = Singleton.getInstance();
+		JSONArray jsonArray = new JSONArray(response);
+		JSONObject data = new JSONObject();
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject movie = jsonArray.getJSONObject(i);
+			String movieId = String.valueOf(movie.getInt("id"));
+			data.put(movieId, movie);
+		}
+
+		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
+		roomMoviesData.put(roomId, data);
+		singleton.setHashMap(roomMoviesData);
+
+		Room r = get(roomId);
+		r.setNumberOfMovies(jsonArray.length());
+
+		return response;
 	}
 
 	@Override
@@ -176,12 +292,9 @@ public class RoomServiceImpl implements RoomService {
 		log.info("Get all users in a room");
 		ArrayList<Integer> validUsersIds = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
-		List<Room_User> roomUsers = roomUserService.getAll();
+		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
 
 		for (Room_User roomUser : roomUsers) {
-			if (!(Objects.equals(roomUser.getRoomId(), roomId)))
-				continue;
-
 			validUsersIds.add(roomUser.getUserId());
 		}
 
