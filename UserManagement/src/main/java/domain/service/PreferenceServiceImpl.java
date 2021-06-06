@@ -50,7 +50,7 @@ public class PreferenceServiceImpl implements PreferenceService {
         if (p != null) {
             em.merge(pref);
         } else {
-            throw new IllegalArgumentException("Preference instance does not exist with userId: " + pref.getUserId());
+            throw new IllegalArgumentException("User does not exist : " + pref.getUserId());
         }
     }
 
@@ -81,5 +81,11 @@ public class PreferenceServiceImpl implements PreferenceService {
     public boolean exists(int userId) {
         Preference p = em.find(Preference.class, userId);
         return (p != null);
+    }
+
+    @Override
+    @Transactional
+    public void create(Preference preference) {
+        em.persist(preference);
     }
 }

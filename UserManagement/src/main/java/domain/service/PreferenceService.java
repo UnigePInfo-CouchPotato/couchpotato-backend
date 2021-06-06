@@ -1,6 +1,7 @@
 package domain.service;
 
 import domain.model.Preference;
+import domain.model.Users;
 
 import java.util.List;
 
@@ -11,4 +12,5 @@ public interface PreferenceService {
     void updatePreference(Preference pref);
     boolean exists(int userId);
     void createPreference(int userID, String genreIdsString);
+    void create(Preference preference);
 }

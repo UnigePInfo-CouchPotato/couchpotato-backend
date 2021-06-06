@@ -18,7 +18,6 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Random;
 
 @ApplicationScoped
 @Path("/users")
@@ -34,6 +33,12 @@ public class UserManagementRestService {
 //  Temporary test: get preferences of one user by his id in the url
 //  NOTE: This will change with oauth2 as we will get the user info from the JWT token (ID token)
 //  TODO: Find out how to integrate JWT token into the requests and retrieve their fields (called "claims")
+
+
+    /* -------- PREFERENCES REQUESTS --------- */
+
+
+
     @GET
     @Path("{id}/get-preferences")
     @Produces(MediaType.APPLICATION_JSON)
@@ -51,16 +56,32 @@ public class UserManagementRestService {
         ).toString()).build();
     }
 
-//  TODO: other requests (set preferences, ...)
+    @POST
+//    @Path("users/create")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a new user with new preferences")
+    public void setPreference(Preference preference) {
+        prefService.create(preference);
+    }
+
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update genre ids")
+    public Response update(Preference newPrefs) {
+        try {
+            prefService.updatePreference(newPrefs);
+        } catch(IllegalArgumentException i) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch(Exception e) {
+            return Response.status(Response.Status.BAD_GATEWAY).build();
+        }
+        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
+    }
 
 
 
 
 
-
-
-
-    /* --------- OLD CODE --------- */
     /* --------- Mock API --------- */
 
     // Fake credentials for login/register in pseudo-db
@@ -79,6 +100,10 @@ public class UserManagementRestService {
         ).toString()).build();
     }
 
+
+
+    //mock apis
+    /*
 
     @POST
     @Path("/v0/register")
@@ -162,10 +187,10 @@ public class UserManagementRestService {
         return Response.status(404).entity(errorMessage).build();
     }
 
+    */
 
 
-
-    /* --------- USER REQUESTS --------- */
+    /* --------- USER REQUESTS (Deprecated)--------- */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -180,34 +205,34 @@ public class UserManagementRestService {
     @ApiOperation(value = "Verify if a user exists")
     public boolean checkUserExists(@PathParam("id") int userId) { return userService.exists(userId);  }
 
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a given user")
-    public Response update(Users newUser) {
-        try {
-            userService.update(newUser);
-        } catch(IllegalArgumentException i) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        } catch(Exception e) {
-            return Response.status(Response.Status.BAD_GATEWAY).build();
-        }
-        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
-    }
+//    @PUT
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @ApiOperation(value = "Update a given user")
+//    public Response update(Users newUser) {
+//        try {
+//            userService.update(newUser);
+//        } catch(IllegalArgumentException i) {
+//            return Response.status(Response.Status.BAD_REQUEST).build();
+//        } catch(Exception e) {
+//            return Response.status(Response.Status.BAD_GATEWAY).build();
+//        }
+//        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
+//    }
 
-    @POST
-//    @Path("users/create")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a new user")
-    public Response createUser(Users user) {
-        try {
-            userService.create(user);
-        } catch(IllegalArgumentException i) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        } catch(Exception e) {
-            return Response.status(Response.Status.BAD_GATEWAY).build();
-        }
-        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
-    }
+//    @POST
+////    @Path("users/create")
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @ApiOperation(value = "Create a new user")
+//    public Response createUser(Users user) {
+//        try {
+//            userService.create(user);
+//        } catch(IllegalArgumentException i) {
+//            return Response.status(Response.Status.BAD_REQUEST).build();
+//        } catch(Exception e) {
+//            return Response.status(Response.Status.BAD_GATEWAY).build();
+//        }
+//        return Response.status(Response.Status.CREATED).location(URI.create("/home")).build();
+//    }
 
 
     /* --------- TEST REQUESTS  --------- */
@@ -217,6 +242,14 @@ public class UserManagementRestService {
     @ApiOperation(value = "Obtain all users")
     public List<Users> getAll() {
         return userService.getAll();
+    }
+
+    @GET
+    @Path("/preferences/all")
+    @Produces("application/json")
+    @ApiOperation(value = "Obtain all preference instances")
+    public List<Preference> getAllPreferences() {
+        return prefService.getAll();
     }
 
     @GET
