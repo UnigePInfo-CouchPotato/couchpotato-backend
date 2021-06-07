@@ -18,13 +18,6 @@ jobs:
     script:
     - pwd
     - mvn install -Ppackage-docker-image  
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker build -t couchpotato-backend/room-service:latest .
-    - docker build -t couchpotato-backend/recommendation-service:latest .
-    - docker tag couchpotato-backend/room-service faysalsaber/room-service:latest
-    - docker tag couchpotato-backend/recommendation-service faysalsaber/recommendation-service:latest
-    - docker push faysalsaber/room-service:latest
-    - docker push faysalsaber/recommendation-service:latest
 before_install:
 - openssl aes-256-cbc -K $encrypted_dfdcfd5172af_key -iv $encrypted_dfdcfd5172af_iv
   -in deploy_key.enc -out ./deploy_key -d
