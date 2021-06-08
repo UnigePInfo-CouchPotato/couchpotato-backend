@@ -43,7 +43,7 @@ class RoomServiceImplTest {
         String roomId = rooms.get(0).getRoomId();
         Room room = roomServiceImpl.get(roomId);
         assertEquals(rooms.get(0).getRoomId(), room.getRoomId());
-        assertEquals(rooms.get(0).getRoomAdminId(), room.getRoomAdminId());
+        assertEquals(rooms.get(0).getRoomAdmin(), room.getRoomAdmin());
     }
 
     private List<Room> getRooms() {
@@ -59,7 +59,7 @@ class RoomServiceImplTest {
     private Room getRandomRoom() {
         Room r = new Room();
         r.setRoomClosed(new Random().nextBoolean());
-        r.setRoomAdminId(new Random().nextInt(9) + 1);
+        r.setRoomAdmin("Test administrator");
         r.setRoomId(UUID.randomUUID().toString().substring(24));
         return r;
     }

@@ -13,9 +13,20 @@ public class Room {
 	@Id
 	private String roomId;
 	@NotNull
-	private int roomAdminId;
+	@Column(columnDefinition="TEXT")
+	private String roomAdmin;
+	@NotNull
+	@Column(columnDefinition="TEXT")
+	private String userPreferences = "";
+	@NotNull
+	@Column(columnDefinition="TEXT")
+	private String movies = "";
 	@NotNull
 	private boolean roomClosed = false;
+	@NotNull
+	private boolean usersCanVote = true;
+	@NotNull
+	private boolean usersCanJoin = true;
 	@NotNull
 	private int numberOfMovies = 0;
 

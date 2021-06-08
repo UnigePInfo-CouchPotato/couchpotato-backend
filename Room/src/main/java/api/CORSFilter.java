@@ -1,4 +1,4 @@
-package api.rest;
+package api;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;

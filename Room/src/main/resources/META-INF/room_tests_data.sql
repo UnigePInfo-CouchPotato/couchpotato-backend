@@ -2,41 +2,41 @@
 
 -- -- Room table
 drop table Room if exists;
-create table Room ( roomId varchar(255) not null, roomAdminId integer not null, roomClosed boolean not null, numberOfMovies integer not null, primary key (roomId));
+create table Room ( roomId varchar(255) not null, roomAdmin varchar(1023) not null, userPreferences varchar(1023) not null, movies varchar(16383) not null, roomClosed boolean not null, usersCanVote boolean not null, usersCanJoin boolean not null, numberOfMovies integer not null, primary key (roomId));
 TRUNCATE TABLE Room;
-INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( 'WN5sgnxYD8tC', 2, FALSE, 0 );
-INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( '99rxfyog0a87', 3, FALSE, 0 );
-INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( '7b07c2qj7lvc', 7, FALSE, 0 );
-INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( 'JC3Tzrx2c1nx', 5, FALSE, 0 );
-INSERT INTO Room (roomId, roomAdminId, roomClosed, numberOfMovies) VALUES ( 'Fgf2NLjhh9mx', 6, TRUE, 0 );
+INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( 'WN5sgnxYD8tC', '', '', '', FALSE, TRUE, TRUE, 0 );
+INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( '99rxfyog0a87', '', '', '', FALSE, TRUE, TRUE, 0 );
+INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( '7b07c2qj7lvc', '', '', '', FALSE, TRUE, TRUE, 0 );
+INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( 'JC3Tzrx2c1nx', '', '', '', FALSE, TRUE, TRUE, 0 );
+INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( 'Fgf2NLjhh9mx', '', '', '', TRUE, TRUE, TRUE, 0 );
 
 
--- -- Room_User table
-drop table Room_User if exists;
-create table Room_User ( roomId varchar(255) not null, userId integer not null, creationDate timestamp not null, genres varchar(500) not null, votes varchar(255) not null, primary key (roomId, userId));
-TRUNCATE TABLE Room_User;
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 1, CURRENT_TIMESTAMP, '28,35', '[2, 5, 1, -1, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 2, CURRENT_TIMESTAMP, '28', '[0, 2, 4, 5, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 3, CURRENT_TIMESTAMP, '35,16', '[-4, 2, 10, 1, 1]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 4, CURRENT_TIMESTAMP, '35', '[3, 2, 3, 1, 1]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 5, CURRENT_TIMESTAMP, '16', '[0, 0, 1, 1, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 6, CURRENT_TIMESTAMP, '10751', '[-1, 2, 6, 2, 1]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '7b07c2qj7lvc', 7, CURRENT_TIMESTAMP, '99,10751', '[7, 8, 1, 5, 4]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'JC3Tzrx2c1nx', 4, CURRENT_TIMESTAMP, '35,99', '[10, 2, 8, -2, 1]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'JC3Tzrx2c1nx', 5, CURRENT_TIMESTAMP, '10402', '[3, 3, 3, 3, 3]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'JC3Tzrx2c1nx', 6, CURRENT_TIMESTAMP, '36,99', '[1, -1, 0, 1, 2]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( '99rxfyog0a87', 3, CURRENT_TIMESTAMP, '35,10402', '[0, 0, 0, 0, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'WN5sgnxYD8tC', 1, CURRENT_TIMESTAMP, '14', '[3, 1, -1, 0, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'WN5sgnxYD8tC', 2, CURRENT_TIMESTAMP, '12,28', '[0, -2, 1, 1, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'WN5sgnxYD8tC', 3, CURRENT_TIMESTAMP, '28,10402,14,99,36', '[5, 2, 0, 10, 3]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'WN5sgnxYD8tC', 4, CURRENT_TIMESTAMP, '18,10751', '[4, 3, 1, 7, 4]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'WN5sgnxYD8tC', 5, CURRENT_TIMESTAMP, '10402', '[1, 6, 3, -2, -4]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'WN5sgnxYD8tC', 6, CURRENT_TIMESTAMP, '36', '[1, 1, 9, -5, 2]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 1, CURRENT_TIMESTAMP, '878,35', '[8, 9, 3, 6, 2]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 2, CURRENT_TIMESTAMP, '10770,37', '[1, 1, 0, 1, 1]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 3, CURRENT_TIMESTAMP, '9648,10402', '[0, 1, 0, 1, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 4, CURRENT_TIMESTAMP, '18', '[6, 5, 4, 3, 2]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 5, CURRENT_TIMESTAMP, '10751', '[-2, -1, 0, 1, 2]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 6, CURRENT_TIMESTAMP, '16,35,10402', '[10, 4, 5, 1, 3]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 7, CURRENT_TIMESTAMP, '36, 878', '[0, 1, 1, 0, 0]' );
-INSERT INTO Room_User (roomId, userId, creationDate, genres, votes) VALUES ( 'Fgf2NLjhh9mx', 8, CURRENT_TIMESTAMP, '12', '[0, 0, 5, 7, 4]' );
+-- -- RoomUser table
+drop table RoomUser if exists;
+create table RoomUser ( roomId varchar(255) not null, userNickname varchar(255) not null, creationDate timestamp not null, votes varchar(255) not null, primary key (roomId, userNickname));
+TRUNCATE TABLE RoomUser;
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '7b07c2qj7lvc', 'KnuckleDust', CURRENT_TIMESTAMP, '[2, 5, 1, -1, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '7b07c2qj7lvc', 'Frieda', CURRENT_TIMESTAMP, '[0, 2, 4, 5, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '7b07c2qj7lvc', 'Mayflower', CURRENT_TIMESTAMP, '[-4, 2, 10, 1, 1]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '7b07c2qj7lvc', 'AtomicX', CURRENT_TIMESTAMP, '[3, 2, 3, 1, 1]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '7b07c2qj7lvc', 'SandySun', CURRENT_TIMESTAMP, '[0, 0, 1, 1, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '7b07c2qj7lvc', 'OgreMan', CURRENT_TIMESTAMP, '[-1, 2, 6, 2, 1]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '7b07c2qj7lvc', 'Serafim', CURRENT_TIMESTAMP, '[7, 8, 1, 5, 4]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'JC3Tzrx2c1nx', 'MicroMash', CURRENT_TIMESTAMP, '[10, 2, 8, -2, 1]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'JC3Tzrx2c1nx', 'Pilar', CURRENT_TIMESTAMP, '[3, 3, 3, 3, 3]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'JC3Tzrx2c1nx', 'RiseUp', CURRENT_TIMESTAMP, '[1, -1, 0, 1, 2]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( '99rxfyog0a87', 'WrittenWord', CURRENT_TIMESTAMP, '[0, 0, 0, 0, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'WN5sgnxYD8tC', 'Lemony', CURRENT_TIMESTAMP, '[3, 1, -1, 0, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'WN5sgnxYD8tC', 'RustySilver', CURRENT_TIMESTAMP, '[0, -2, 1, 1, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'WN5sgnxYD8tC', 'JulesCrown', CURRENT_TIMESTAMP, '[5, 2, 0, 10, 3]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'WN5sgnxYD8tC', 'Warlock', CURRENT_TIMESTAMP, '[4, 3, 1, 7, 4]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'WN5sgnxYD8tC', 'RobbingHood', CURRENT_TIMESTAMP, '[1, 6, 3, -2, -4]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'WN5sgnxYD8tC', 'Everyday', CURRENT_TIMESTAMP, '[1, 1, 9, -5, 2]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Polemic', CURRENT_TIMESTAMP, '[8, 9, 3, 6, 2]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Storm', CURRENT_TIMESTAMP, '[1, 1, 0, 1, 1]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Jelly', CURRENT_TIMESTAMP, '[0, 1, 0, 1, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Bob', CURRENT_TIMESTAMP, '[6, 5, 4, 3, 2]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Patel', CURRENT_TIMESTAMP, '[-2, -1, 0, 1, 2]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Nickname', CURRENT_TIMESTAMP, '[10, 4, 5, 1, 3]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Man', CURRENT_TIMESTAMP, '[0, 1, 1, 0, 0]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Woman', CURRENT_TIMESTAMP, '[0, 0, 5, 7, 4]' );
