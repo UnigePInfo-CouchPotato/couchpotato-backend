@@ -6,9 +6,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import domain.model.Room;
-import domain.model.Room_User;
+import domain.model.RoomUser;
 import org.apache.http.HttpStatus;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -16,10 +15,20 @@ import io.restassured.RestAssured;
 
 class RoomRestServiceIT {
 
+    private static void testSetMode() {
+        when()
+                .get("/test-mode")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(containsString("Test mode enabled"));
+    }
+
     @BeforeAll
     public static void setup() {
         RestAssured.baseURI = "http://localhost:28080/rooms";
-        RestAssured.port = 8080;
+        RestAssured.port = 9000;
+
+        testSetMode();
     }
 
     @Test
@@ -52,7 +61,6 @@ class RoomRestServiceIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("roomId", equalTo("Fgf2NLjhh9mx"))
-                .body("roomAdminId", equalTo(6))
                 .body("roomClosed", equalTo(true))
                 .body("numberOfMovies", equalTo(0));
     }
@@ -91,14 +99,14 @@ class RoomRestServiceIT {
 
     @Test
     void testGetAllRoomUsers() {
-        Room_User[] roomUsers =
+        RoomUser[] roomUsers =
                 when()
                         .get("/room-users")
                         .then()
                         .assertThat()
                         .statusCode(HttpStatus.SC_OK)
                         .extract()
-                        .as(Room_User[].class);
+                        .as(RoomUser[].class);
 
         assertThat(roomUsers.length, equalTo(24));
         assertThat(roomUsers[0].getRoomId(), equalTo("7b07c2qj7lvc"));
@@ -106,8 +114,6 @@ class RoomRestServiceIT {
         assertThat(roomUsers[12].getRoomId(), equalTo("WN5sgnxYD8tC"));
         assertThat(roomUsers[20].getRoomId(), equalTo("Fgf2NLjhh9mx"));
 
-        assertThat(roomUsers[0].getUserId(), equalTo(1));
-        assertThat(roomUsers[0].getGenres(), equalTo("28,35"));
         assertThat(roomUsers[0].getVotes(), equalTo("[2, 5, 1, -1, 0]"));
     }
 
@@ -119,8 +125,8 @@ class RoomRestServiceIT {
                 .get("/exists")
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.exists", equalTo(false));
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("error", equalTo(String.format("Room %s does not exist", "1b02c2ej1lvc")));
     }
 
     @Test

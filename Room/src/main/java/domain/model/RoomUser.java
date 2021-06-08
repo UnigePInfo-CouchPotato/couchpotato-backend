@@ -9,19 +9,16 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name ="Room_User")
-public class Room_User implements Serializable {
+@Table(name ="RoomUser")
+public class RoomUser implements Serializable {
 
 	@Id
 	private String roomId;
 	@Id
-	private int userId;
+	private String userNickname;
 	@NotNull
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationDate = new Date();
-	@Column(columnDefinition="TEXT")
-	@NotNull
-	private String genres = "";
 	@NotNull
 	private String votes = "[]";
 
