@@ -306,7 +306,7 @@ public class RoomServiceImpl implements RoomService {
 		}
 
 		String idGenres = Arrays.stream(genresIdsWithTheMostOccurrences).map(String::valueOf).collect(Collectors.joining(","));
-		final String url = RECOMMENDATION_SERVICE_URL + "selectGenres=" + idGenres;
+		final String url = RECOMMENDATION_SERVICE_URL + "selectGenres/" + idGenres;
 		String response = makeRequest(url, token);
 
 		Singleton singleton = Singleton.getInstance();
