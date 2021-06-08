@@ -1,0 +1,114 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /users/$2
+    cert-manager.io/issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/auth-response-headers: Authorization
+    nginx.ingress.kubernetes.io/auth-url: "https://$host/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
+      access_by_lua_block {
+        if ngx.var.name_upstream_1 ~= "" then
+          ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+        end
+      }
+  name: {{ include "couchpotato.fullname" . }}.ingress-api-user-management
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "couchpotato.labels" . | nindent 4 }}
+    {{- include "couchpotato.labels" . | nindent 4 }}.ingress
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.ingress.apiEndpoint }}
+    secretName: couchpotato-ingress-tls
+  rules:
+  - host: {{ .Values.ingress.apiEndpoint }}
+    http:
+      paths:
+      - path: /users(/|$)(.*)
+        backend:
+          serviceName: {{ include "couchpotato.fullname" . }}-usermanagement-service
+          servicePort: 28080
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /rooms/$2
+    cert-manager.io/issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/auth-response-headers: Authorization
+    nginx.ingress.kubernetes.io/auth-url: "https://$host/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
+      access_by_lua_block {
+        if ngx.var.name_upstream_1 ~= "" then
+          ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+        end
+      }
+  name: {{ include "couchpotato.fullname" . }}.ingress-api-rooms
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "couchpotato.labels" . | nindent 4 }}
+    {{- include "couchpotato.labels" . | nindent 4 }}.ingress
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.ingress.apiEndpoint }}
+    secretName: couchpotato-ingress-tls
+  rules:
+  - host: {{ .Values.ingress.apiEndpoint }}
+    http:
+      paths:
+      - path: /rooms(/|$)(.*)
+        backend:
+          serviceName: {{ include "couchpotato.fullname" . }}-room-service
+          servicePort: 28080
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+  name: {{ include "couchpotato.fullname" . }}.ingress-static
+  namespace: {{ .Release.Namespace }} 
+  labels:
+    {{- include "couchpotato.labels" . | nindent 4 }}
+    {{- include "couchpotato.labels" . | nindent 4 }}.ingress
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.ingress.clientEndpoint }}
+    secretName: couchpotato-ingress-tls
+  rules:
+  - host: {{ .Values.ingress.clientEndpoint }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ include "couchpotato.fullname" . }}-web-ui
+          servicePort: 80          
+---  
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+  name: oauth2-proxy
+  namespace: {{ .Release.Namespace }}
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.ingress.apiEndpoint }}
+    secretName: couchpotato-ingress-tls
+  rules:
+  - host: {{ .Values.ingress.apiEndpoint }}
+    http:
+      paths:
+        - backend:
+            serviceName: oauth2-proxy
+            servicePort: 4180
+          path: /oauth2

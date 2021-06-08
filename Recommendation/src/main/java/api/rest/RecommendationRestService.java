@@ -7,6 +7,7 @@ import domain.service.RecommendationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
+import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,6 +30,17 @@ public class RecommendationRestService {
     private RecommendationService recommendationService;
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response welcome() {
+        return Response.status(Response.Status.OK).entity((
+          new JSONObject(){{
+              put("service", "recommendation");
+              put("message", "Welcome!");
+          }}
+        ).toString()).build();
+    }
+
+    @GET
     @Path("/genres")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllGenres() {
@@ -39,7 +51,7 @@ public class RecommendationRestService {
     //Get all horror and drama movies (id=27,18)
     //http://localhost:12080/recommendation/selectGenres=27,18
     @GET
-    @Path("/selectGenres={idGenres}")
+    @Path("/selectGenres/{idGenres}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllFilmSelected(@PathParam("idGenres") String idGenres) {
         return recommendationService.getAllFilmSelected(idGenres);
@@ -47,7 +59,7 @@ public class RecommendationRestService {
 
     // detail doit etre un integer dans un string
     @GET
-    @Path("/detail={detail}")
+    @Path("/detail/{detail}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllDetail(@PathParam("detail") String detail) {
         return recommendationService.getAllDetail(detail);
