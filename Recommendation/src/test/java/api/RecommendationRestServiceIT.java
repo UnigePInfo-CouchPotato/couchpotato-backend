@@ -53,7 +53,7 @@ class RecommendationRestServiceIT {
                 body(,lessThan(5));
 
     }*/
-/*
+
     @Test
     public void testResponseForm() {
         String num = "27";
@@ -63,9 +63,9 @@ class RecommendationRestServiceIT {
         when().
                 get("/selectGenres/{idGenres}").
                 then().
-                contentType(MediaType.APPLICATION_JSON);
+                contentType(ContentType.JSON);
 
-    }*/
+    }
 
 
 
