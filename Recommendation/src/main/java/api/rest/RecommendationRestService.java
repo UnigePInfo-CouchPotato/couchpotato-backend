@@ -49,7 +49,7 @@ public class RecommendationRestService {
 
     //idGenres doit etre un integer dans un string
     //Get all horror and drama movies (id=27,18)
-    //http://localhost:12080/recommendation/selectGenres=27,18
+    //http://localhost:12080/recommendation/selectGenres/27,18
     @GET
     @Path("/selectGenres/{idGenres}")
     @Produces(MediaType.APPLICATION_JSON)

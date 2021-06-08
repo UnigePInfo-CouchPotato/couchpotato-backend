@@ -43,29 +43,44 @@ class RecommendationRestServiceIT {
                 .statusCode(HttpStatus.SC_OK)
                 .body("genres.id", hasItems(28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37));
     }
-/*
-    @Test
-    public void testResponseForm() {
-        String num = "27";
-        given().
-                pathParam("idGenres", num).
-
-                when().
-                get("/selectGenres/{idGenres}").
-                then().
-                body(,lessThan(5));
-
-    }*/
 
     @Test
     public void testResponseForm() {
         String num = "27";
 
         given()
-            .pathParam("idGenres", num)
+            .pathParam("idGenres", 27)
             .when()
             .get("/selectGenres/{idGenres}")
             .then()
+                .statusCode(HttpStatus.SC_OK)
             .contentType(ContentType.JSON);
     }
+
+
+    @Test
+    public void testResponseId() {
+
+        given()
+                .pathParam("idGenres","Patate")
+                .when()
+                .get("/selectGenres/{idGenres}")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .contentType(ContentType.JSON);
+    }
+
+
+    @Test
+    public void testResponseLength() {
+        given().
+                pathParam("idGenres", 27).
+                when().
+                get("/selectGenres/{idGenres}").
+                then().
+                statusCode(HttpStatus.SC_OK).
+                body("$.size()",lessThan(6));
+
+    }
+
 }
