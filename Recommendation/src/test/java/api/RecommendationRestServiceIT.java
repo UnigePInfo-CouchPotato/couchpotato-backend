@@ -1,6 +1,9 @@
 package api;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.LogDetail;
+import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -12,7 +15,7 @@ import javax.ws.rs.core.MediaType;
 //import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.*;
 import static io.restassured.RestAssured.*;
-
+import io.restassured.http.ContentType;
 
 class RecommendationRestServiceIT {
 
@@ -57,16 +60,12 @@ class RecommendationRestServiceIT {
     @Test
     public void testResponseForm() {
         String num = "27";
-        given().
-                pathParam("idGenres", num).
 
-        when().
-                get("/selectGenres/{idGenres}").
-                then().
-                contentType(ContentType.JSON);
-
+        given()
+            .pathParam("idGenres", num)
+            .when()
+            .get("/selectGenres/{idGenres}")
+            .then()
+            .contentType(ContentType.JSON);
     }
-
-
-
 }

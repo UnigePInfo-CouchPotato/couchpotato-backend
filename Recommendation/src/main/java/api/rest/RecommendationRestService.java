@@ -51,7 +51,7 @@ public class RecommendationRestService {
     //Get all horror and drama movies (id=27,18)
     //http://localhost:12080/recommendation/selectGenres=27,18
     @GET
-    @Path("/selectGenres={idGenres}")
+    @Path("/selectGenres/{idGenres}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllFilmSelected(@PathParam("idGenres") String idGenres) {
         return recommendationService.getAllFilmSelected(idGenres);
@@ -59,7 +59,7 @@ public class RecommendationRestService {
 
     // detail doit etre un integer dans un string
     @GET
-    @Path("/detail={detail}")
+    @Path("/detail/{detail}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllDetail(@PathParam("detail") String detail) {
         return recommendationService.getAllDetail(detail);
