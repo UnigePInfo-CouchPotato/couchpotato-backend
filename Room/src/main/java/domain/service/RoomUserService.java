@@ -10,6 +10,7 @@ public interface RoomUserService {
     RoomUser get(String roomId, String userNickname);
     boolean exists(String roomId, String userNickname);
     void create(RoomUser roomUser);
+    void delete(String roomId);
     void create(String roomId, String userNickname);
     List<RoomUser> getAll();
     List<RoomUser> getAllFromRoomId(String roomId);
