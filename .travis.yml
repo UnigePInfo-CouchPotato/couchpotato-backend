@@ -29,9 +29,8 @@ jobs:
     - docker push faysalsaber/recommendation-service:latest
     - mvn sonar:sonar -Dsonar.projectKey=UnigePInfo-CouchPotato_couchpotato-backend  -Dsonar.organization=unigepinfo-couchpotato-frontend -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=51b83c26175058d4065bc0b8805ca492ad650e9e -Dsonar.test.exclusions=src/main/java/** -Dsonar.java.binaries=target/classes
     - cd ..
+    - ssh -i ./deploy_key saberfa0@129.194.10.127 cd couchpotato/helm-charts/test/couchpotato-backend/
     - ssh -i ./deploy_key saberfa0@129.194.10.127 ls -la
-    - cd couchpotato/helm-charts/test/couchpotato-backend/
-    - ls -la
 before_install:
 - openssl aes-256-cbc -K $encrypted_dfdcfd5172af_key -iv $encrypted_dfdcfd5172af_iv
   -in deploy_key.enc -out ./deploy_key -d
@@ -41,3 +40,9 @@ before_install:
 - ssh-add ./deploy_key
 - ssh -i ./deploy_key saberfa0@129.194.10.127 pwd
 
+# safelist
+branches:
+  only:
+  - main
+  - staging
+  - dev
