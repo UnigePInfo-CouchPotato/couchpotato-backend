@@ -1,11 +1,11 @@
 package domain.service;
 
 import domain.model.Room;
-import domain.model.Room_User;
+import domain.model.RoomUser;
 import domain.model.Singleton;
-import domain.model.Users;
 import lombok.extern.java.Log;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -18,10 +18,11 @@ import javax.transaction.Transactional;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,22 +46,36 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	/*CONSTANTS*/
-	private static final String USER_MANAGEMENT_SERVICE_URL = "http://usermanagement-service:28080/users/";
+	private static final String AUTH0_URL = "https://couchpotato.eu.auth0.com/v2/userinfo";
 	private static final String RECOMMENDATION_SERVICE_URL = "http://recommendation-service:28080/recommendation/";
+
 
 	/*USEFUL METHODS*/
 	private String createID() { return UUID.randomUUID().toString().substring(24); }
 
-	private String makeRequest(String url) {
+	private String makeRequest(String url, String token) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
-		Response response = webTarget.request(MediaType.APPLICATION_JSON).get();
+		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
+
+		if (response.getStatusInfo() == Response.Status.UNAUTHORIZED) {
+			return "Unauthorized";
+		}
 
 		if (response.getStatus() != 200) {
 			return "Failed : HTTP error code : " + response.getStatus();
 		}
 
 		return response.readEntity(String.class);
+	}
+
+	@Override
+	public JSONObject getUserInfo(String token) {
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(AUTH0_URL);
+		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
+		String str = response.readEntity(String.class);
+		return new JSONObject(str);
 	}
 
 	private boolean isInteger(Object object) {
@@ -88,41 +103,72 @@ public class RoomServiceImpl implements RoomService {
 				.map(Map.Entry::getKey);
 	}
 
-	@Override
-	public Users getRoomAdmin(int userId) {
-		log.info("Get information on room administrator from user management");
-		final String url = USER_MANAGEMENT_SERVICE_URL + userId;
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(url);
-		Response response = webTarget.request(MediaType.APPLICATION_JSON).get();
-		return response.readEntity(Users.class);
+	private String getUserPreferences(JSONObject userInfo) {
+		try {
+			JSONObject metadata = userInfo.getJSONObject("https://pinfo2.unige.ch/metadata");
+			JSONArray preferences = metadata.getJSONArray("preferences");
+			List<Integer> integerList = new ArrayList<>();
+			preferences.forEach(o -> integerList.add((Integer) o));
+			return integerList.stream().map(Object::toString).collect(Collectors.joining(","));
+		} catch (JSONException e) {
+			return "";
+		}
 	}
 
-	@Override
-	public boolean isRoomAdmin(String roomId, int userId) {
-    	log.info("Check if user is the administrator of a room");
-		Room room = get(roomId);
-		return room.getRoomAdminId() == userId;
+	private String getUserNickname(JSONObject userInfo) {
+		return userInfo.getString("nickname");
 	}
 
 	@Override
 	@Transactional
-	public String createRoom(int userId) {
+	public void endJoinPeriod(String roomId, String token) {
+		Room room = get(roomId);
+		room.setUsersCanJoin(false);
+	}
+
+	@Override
+	@Transactional
+	public void endVotingPeriod(String roomId, String token) {
+		Room room = get(roomId);
+		room.setUsersCanVote(false);
+	}
+
+	@Override
+	public boolean isRoomAdmin(String roomId, String token) {
+    	log.info("Check if user is the administrator of a room");
+		Room room = get(roomId);
+		JSONObject userInfo = getUserInfo(token);
+		return Objects.equals(room.getRoomAdmin(), userInfo.toString());
+	}
+
+	@Override
+	@Transactional
+	public String createRoom(String token) {
     	log.info("Create a room, set the administrator and add the user");
 		Room room = new Room();
-		room.setRoomAdminId(userId);
+		JSONObject userInfo = getUserInfo(token);
+		room.setRoomAdmin(userInfo.toString());
 		room.setRoomId(createID());
 		em.persist(room);
 		em.flush();
 		String createdRoomId = room.getRoomId();
-		roomUserService.create(createdRoomId, userId);
+		roomUserService.create(createdRoomId, getUserNickname(userInfo));
+		String str = getUserPreferences(userInfo);
+		room.setUserPreferences(str);
 		return createdRoomId;
 	}
 
 	@Override
-	public void joinRoom(String roomId, int userId) {
+	@Transactional
+	public void joinRoom(String roomId, String token) {
     	log.info("Add user to a room");
-		roomUserService.create(roomId, userId);
+    	JSONObject userInfo = getUserInfo(token);
+    	Room room = get(roomId);
+		String newPreferences = getUserPreferences(userInfo);
+		String userPreferences = room.getUserPreferences();
+		String updatedPreferences = userPreferences + "," + newPreferences;
+		room.setUserPreferences(updatedPreferences);
+		roomUserService.create(roomId, getUserNickname(userInfo));
 	}
 
 	@Override
@@ -135,7 +181,7 @@ public class RoomServiceImpl implements RoomService {
     		em.remove(room);
 
     	//Delete all roomUser records associated
-		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
+		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
 		roomUsers.forEach(roomUser -> em.remove(roomUser));
 	}
 
@@ -154,34 +200,27 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public boolean isUserIdInvalid(int userId) {
-    	log.info("Check if the user id is valid");
-		final String url = USER_MANAGEMENT_SERVICE_URL + userId + "/exists";
-		String response = makeRequest(url);
-		return !Boolean.parseBoolean(response);
-	}
+	public boolean isTokenInvalid(String token) {
+    	log.info("Check if the token is valid");
+		String response = makeRequest(AUTH0_URL, token);
 
-	@Override
-	public boolean isRoomClosed(String roomId) {
-		log.info("Check if room is closed");
-		Room room = get(roomId);
-		return room.isRoomClosed();
+		return response.equals("Unauthorized");
 	}
 
 	@Override
 	public String getMovieWithMostVotes(String roomId) {
-    	log.info("Get the index of the movie with the most votes");
+    	log.info("Get the movie with the most votes");
 		Singleton singleton = Singleton.getInstance();
-		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
+		Map<String, JSONObject> roomMoviesData = singleton.getHashMap();
 		JSONObject jsonObject = roomMoviesData.get(roomId);
 
 		if (jsonObject == null)
 			return "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
 
-		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
+		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
     	HashMap<String, Integer> index = new HashMap<>();
 
-		for (Room_User roomUser : roomUsers) {
+		for (RoomUser roomUser : roomUsers) {
 			String userVote = roomUser.getVotes();
 			JSONArray votes = new JSONArray(userVote);
 			JSONObject movieData = votes.getJSONObject(0);
@@ -199,7 +238,8 @@ public class RoomServiceImpl implements RoomService {
 
 		String movieIdWithMostVotes = Collections.max(index.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
 		JSONObject movie = jsonObject.getJSONObject(movieIdWithMostVotes);
-		if (movie == null || movie.isEmpty() || movie.isNull(movieIdWithMostVotes))
+
+		if (movie == null || movie.isEmpty())
 			return "{" + String.format("\"message\":\"No data for movie %s\"", movieIdWithMostVotes) + "}";
 
 		return movie.toString();
@@ -207,23 +247,30 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	@Transactional
-	public String getMovies(String roomId, int userId) {
+	public String getMovies(String roomId, String token) {
 		log.info("Get movies from recommendation service");
-		LinkedHashMap<Integer, Integer> index = new LinkedHashMap<>();
-		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
-		Integer[] genresIdsWithTheMostOccurrences = {0, 0, 0};
-		for (Room_User roomUser : roomUsers) {
-			String userGenres = roomUser.getGenres();
-			List<String> genres = Arrays.asList(userGenres.split(","));
-			boolean areNumbers = genres.stream().allMatch(this::isInteger);
-			if (!areNumbers)
-				continue;
 
-			List<Integer> integers = Arrays.stream(userGenres.split(",")).map(Integer::parseInt).collect(Collectors.toList());
-			for (Integer id : integers) {
-				Integer value = index.get(id);
-				index.put(id, (value == null) ? 1 : ++value);
-			}
+		Room room = get(roomId);
+
+		//Check if movies have been set already
+		String movies = room.getMovies();
+		if (!movies.isEmpty())
+			return movies;
+
+		String preferences = room.getUserPreferences();
+		if (preferences.isEmpty())
+			return "\"error\":\"Please set some preferences for this room\"";
+
+		LinkedHashMap<Integer, Integer> index = new LinkedHashMap<>();
+		List<String> genres = Arrays.asList(preferences.split(","));
+		boolean areNumbers = genres.stream().allMatch(this::isInteger);
+		if (!areNumbers)
+			return "\"error\":\"Please set some preferences for this room\"";
+
+		List<Integer> integers = Arrays.stream(preferences.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+		for (Integer id : integers) {
+			Integer value = index.get(id);
+			index.put(id, (value == null) ? 1 : ++value);
 		}
 
 		if (index.size() < 3) {
@@ -232,7 +279,9 @@ public class RoomServiceImpl implements RoomService {
 
 		List<Integer> indexValues = new ArrayList<>(index.values());
 		indexValues.sort(Collections.reverseOrder());
+
 		int count = 0;
+		Integer[] genresIdsWithTheMostOccurrences = {0, 0, 0};
 
 		while (count < 3) {
 			Stream<Integer> keyStream = keys(index, indexValues.get(count));
@@ -245,21 +294,20 @@ public class RoomServiceImpl implements RoomService {
 				count++;
 			}
 			else {
-				for (int i = 0; i < (3 - count); i++) {
+				for (int i = 0; i < (3 - count); i++, count++) {
 					Collections.shuffle(keys);
-					int randomInt = ThreadLocalRandom.current().nextInt(keys.size());
+					int randomInt = new SecureRandom().nextInt(keys.size());
 					Integer value = keys.get(randomInt);
 					genresIdsWithTheMostOccurrences[count] = value;
 					index.remove(keys.get(randomInt));
 					keys.remove(value);
-					count++;
 				}
 			}
 		}
 
 		String idGenres = Arrays.stream(genresIdsWithTheMostOccurrences).map(String::valueOf).collect(Collectors.joining(","));
 		final String url = RECOMMENDATION_SERVICE_URL + "selectGenres=" + idGenres;
-		String response = makeRequest(url);
+		String response = makeRequest(url, token);
 
 		Singleton singleton = Singleton.getInstance();
 		JSONArray jsonArray = new JSONArray(response);
@@ -271,42 +319,38 @@ public class RoomServiceImpl implements RoomService {
 			data.put(movieId, movie);
 		}
 
-		HashMap<String, JSONObject> roomMoviesData = singleton.getHashMap();
+		Map<String, JSONObject> roomMoviesData = singleton.getHashMap();
 		roomMoviesData.put(roomId, data);
 		singleton.setHashMap(roomMoviesData);
 
-		Room r = get(roomId);
-		r.setNumberOfMovies(jsonArray.length());
+		room.setNumberOfMovies(jsonArray.length());
+		room.setMovies(response);
 
 		return response;
 	}
 
 	@Override
-	public boolean isUserInRoom(String roomId, int userId) {
+	public boolean isUserInRoom(String roomId, String token) {
 		log.info("Check if user is already in a room");
-		return roomUserService.exists(roomId, userId);
+		JSONObject userInfo = getUserInfo(token);
+		return roomUserService.exists(roomId, getUserNickname(userInfo));
 	}
 
 	@Override
 	public String getRoomUsers(String roomId) {
 		log.info("Get all users in a room");
-		ArrayList<Integer> validUsersIds = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
-		List<Room_User> roomUsers = roomUserService.getAllFromRoomId(roomId);
-
-		for (Room_User roomUser : roomUsers) {
-			validUsersIds.add(roomUser.getUserId());
-		}
+		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
 
 		stringBuilder.append("[");
-		int count = 0;
-		for (Integer validUserId : validUsersIds) {
-			final String url = USER_MANAGEMENT_SERVICE_URL + validUserId;
-			String str = makeRequest(url);
-			stringBuilder.append(str);
-			count++;
-			if (count < validUsersIds.size())
-				stringBuilder.append(",");
+		for (RoomUser roomUser : roomUsers) {
+			stringBuilder.append("{");
+			stringBuilder.append(String.format("\"user%d\":\"%s\"", roomUsers.indexOf(roomUser), roomUser.getUserNickname()));
+			stringBuilder.append("}");
+			if (roomUsers.indexOf(roomUser) == roomUsers.size() -1)
+				continue;
+
+			stringBuilder.append(",");
 		}
 		stringBuilder.append("]");
 
@@ -343,5 +387,17 @@ public class RoomServiceImpl implements RoomService {
 		log.info("Check if a room exists");
 		Room r = em.find(Room.class, roomId);
 		return (r != null);
+	}
+
+	@Override
+	public boolean canJoinRoom(String roomId) {
+		Room room = get(roomId);
+		return room.isUsersCanJoin();
+	}
+
+	@Override
+	public boolean canVote(String roomId) {
+		Room room = get(roomId);
+		return room.isUsersCanVote();
 	}
 }

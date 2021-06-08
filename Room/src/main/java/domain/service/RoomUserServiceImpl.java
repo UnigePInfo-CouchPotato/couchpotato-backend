@@ -2,7 +2,7 @@ package domain.service;
 
 import lombok.extern.java.Log;
 
-import domain.model.Room_User;
+import domain.model.RoomUser;
 import org.json.JSONArray;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -31,101 +31,66 @@ public class RoomUserServiceImpl implements RoomUserService {
     }
 
     @Override
-    public Room_User get(Room_User roomUser) {
+    public RoomUser get(String roomId, String userNickname) {
         log.info("Get a roomUser");
-        return em.find(Room_User.class, roomUser);
-    }
-
-    @Override
-    public Room_User get(String roomId, int userId) {
-        log.info("Get a roomUser");
-        Room_User roomUser = new Room_User();
+        RoomUser roomUser = new RoomUser();
         roomUser.setRoomId(roomId);
-        roomUser.setUserId(userId);
-        return em.find(Room_User.class, roomUser);
+        roomUser.setUserNickname(userNickname);
+        return em.find(RoomUser.class, roomUser);
     }
 
     @Override
-    public boolean exists(Room_User roomUser) {
+    public boolean exists(String roomId, String userNickname) {
         log.info("Check if a roomUser exists");
-        Room_User r = em.find(Room_User.class, roomUser);
-        return (r != null);
-    }
-
-    @Override
-    public boolean exists(String roomId, int userId) {
-        log.info("Check if a roomUser exists");
-        Room_User roomUser = new Room_User();
+        RoomUser roomUser = new RoomUser();
         roomUser.setRoomId(roomId);
-        roomUser.setUserId(userId);
-        Room_User r = em.find(Room_User.class, roomUser);
+        roomUser.setUserNickname(userNickname);
+        RoomUser r = em.find(RoomUser.class, roomUser);
         return (r != null);
     }
 
     @Override
     @Transactional
-    public void create(Room_User roomUser) {
+    public void create(RoomUser roomUser) {
         log.info("Create a roomUser");
         em.persist(roomUser);
     }
 
     @Override
     @Transactional
-    public void create(String roomId, int userId) {
+    public void create(String roomId, String userNickname) {
         log.info("Create a roomUser");
-        Room_User roomUser = new Room_User();
+        RoomUser roomUser = new RoomUser();
         roomUser.setRoomId(roomId);
-        roomUser.setUserId(userId);
+        roomUser.setUserNickname(userNickname);
         em.persist(roomUser);
     }
 
     @Override
-    public List<Room_User> getAll() {
+    public List<RoomUser> getAll() {
         log.info("Retrieve all roomUsers");
         CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<Room_User> criteria = builder.createQuery( Room_User.class );
-        criteria.from(Room_User.class);
+        CriteriaQuery<RoomUser> criteria = builder.createQuery( RoomUser.class );
+        criteria.from(RoomUser.class);
         return em.createQuery( criteria ).getResultList();
     }
 
     @Override
     @Transactional
-    public void setUserGenres(String roomId, int userId, String genres) {
-        log.info("Set user genres in a room");
-        Room_User roomUser = get(roomId, userId);
-        genres = genres.replace("\"", "").replaceAll("\\s", "");
-        roomUser.setGenres(genres);
-    }
-
-    @Override
-    @Transactional
-    public void setUserVotes(String roomId, int userId, JSONArray choice) {
+    public void setUserVotes(String roomId, String userNickname, JSONArray choice) {
         log.info("Set user votes in a room");
-        Room_User roomUser = get(roomId, userId);
+        RoomUser roomUser = get(roomId, userNickname);
         String votes = choice.toString();
         roomUser.setVotes(votes);
     }
 
     @Override
-    public int countRoomUsers(String roomId) {
-        log.info("Count number of roomUsers records associated to this room id");
-        int counter = 0;
-        List<Room_User> roomUsers = getAll();
-        for (Room_User roomUser : roomUsers) {
-            if (Objects.equals(roomUser.getRoomId(), roomId)) {
-                counter++;
-            }
-        }
-        return counter;
-    }
-
-    @Override
-    public List<Room_User> getAllFromRoomId(String roomId) {
+    public List<RoomUser> getAllFromRoomId(String roomId) {
         log.info("Retrieve all roomUsers associated to a room");
         CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<Room_User> criteria = builder.createQuery( Room_User.class );
-        criteria.from(Room_User.class);
-        List<Room_User> roomUsers = em.createQuery( criteria ).getResultList();
+        CriteriaQuery<RoomUser> criteria = builder.createQuery( RoomUser.class );
+        criteria.from(RoomUser.class);
+        List<RoomUser> roomUsers = em.createQuery( criteria ).getResultList();
         roomUsers.removeIf(roomUser -> !Objects.equals(roomUser.getRoomId(), roomId));
         return roomUsers;
     }
