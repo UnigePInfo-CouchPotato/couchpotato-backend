@@ -15,7 +15,8 @@ import io.restassured.RestAssured;
 
 class RoomRestServiceIT {
 
-    private static void testSetMode() {
+    @Test
+    private static void testSetTestMode() {
         when()
                 .get("/test-mode")
                 .then()
@@ -28,7 +29,7 @@ class RoomRestServiceIT {
         RestAssured.baseURI = "http://localhost:28080/rooms";
         RestAssured.port = 9080;
 
-        testSetMode();
+        testSetTestMode();
     }
 
     @Test
@@ -37,7 +38,7 @@ class RoomRestServiceIT {
                 .get("/")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("service", equalTo("room"))
+                .body("service", equalTo("rooms"))
                 .body("message", equalTo("Welcome!"));
     }
 
