@@ -58,6 +58,13 @@ public class RoomUserServiceImpl implements RoomUserService {
 
     @Override
     @Transactional
+    public void delete(String roomId) {
+        List<RoomUser> roomUsers = getAllFromRoomId(roomId);
+        roomUsers.forEach(roomUser -> em.remove(roomUser));
+    }
+
+    @Override
+    @Transactional
     public void create(String roomId, String userNickname) {
         log.info("Create a roomUser");
         RoomUser roomUser = new RoomUser();
