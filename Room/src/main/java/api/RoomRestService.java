@@ -274,7 +274,7 @@ public class RoomRestService {
         }
 
         //End the voting period
-        roomService.endVotingPeriod(roomId, bearerToken);
+        roomService.endVotingPeriod(roomId);
         String successMessage = "{" + String.format("\"message\":\"Voting period of room %s has been ended successfully\"", roomId) + "}";
         return Response.status(Response.Status.OK).entity(successMessage).build();
     }
@@ -298,7 +298,7 @@ public class RoomRestService {
         }
 
         //End the join period
-        roomService.endJoinPeriod(roomId, bearerToken);
+        roomService.endJoinPeriod(roomId);
         String successMessage = "{" + String.format("\"message\":\"Join period of room %s has been ended successfully\"", roomId) + "}";
         return Response.status(Response.Status.OK).entity(successMessage).build();
     }

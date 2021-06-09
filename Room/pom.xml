@@ -98,6 +98,11 @@
             <artifactId>system-stubs-jupiter</artifactId>
             <version>1.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-client</artifactId>
+            <version>3.9.1.Final</version>
+        </dependency>
 
 
         <dependency>
