@@ -3,7 +3,10 @@ services:
 - docker
 addons:
   sonarcloud:
-    organization: "unigepinfo-couchpotato-frontend" 
+    organization: "unigepinfo-couchpotato-frontend"
+    token: 
+        secure: QFNTTLhkm2l0FAmWICV23KoLCM6AW28BSUgdN5R5u8W5Xv0YUaI4ZyuhvxC7rTywuDFCdXD5T9Po2g0SNViEfi3voiBjjgT9Q5YRQJGj3y7dB2pOGlyCx83K5i7UIkml/KVfX5DqQOw0jPwMkPp4ktS3c8W6GmK6ckwGOcfpp4v0pvKpi1JiFet+w522mwcNuNhlt+vaiOKJOT5pRq9jtkke0Y3vixL7Fl9hkwl948/m9y+VnY0eRkNttknfafdJt7SYW+XzSqCrPeFKK/gvlxQfRN80hp+2jShKNoD3pJqcnKjNuejBoJFFagqicBcq2xozhvldV8Y3A3fa95wILDkJe+zWHqrNVfGF1/KTf05ZpdipXcR/f8e5riWp1xC2ADlR/Cc7XvyZOfSuXILAp+XgkQOslfINQzk8mdoIURy4iodwCoxMEFL/L3jWKgGbfrnDrHn3tRPI/AgFGcICbLFwtYZ7xk6NAePXsGFkuPe6uXCFAwXmkM8tVTHd0LwYzg6kqMV4qMJJaJsyq6dftcYsP92ur9NPBVT/GqTXre0ZYNgg2GChuNv0rL4YK79HrcMk2l4tMziYU67Z1tlK0IUl/ttQ65tKE8IJJSBkbNLXF9EMxaygWJV3KV1X7+gGwcBY45tDScyTBdcbdNsXfxyCazzJ7Hlz2CCqvHfRkRk=
+
 cache:
   directories:
   - ".autoconf"
@@ -27,7 +30,7 @@ jobs:
     - docker build -t couchpotato-backend/recommendation-service:latest .
     - docker tag couchpotato-backend/recommendation-service faysalsaber/recommendation-service:latest
     - docker push faysalsaber/recommendation-service:latest
-    - mvn sonar:sonar -Dsonar.projectKey=UnigePInfo-CouchPotato_couchpotato-backend  -Dsonar.organization=unigepinfo-couchpotato-frontend -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=51b83c26175058d4065bc0b8805ca492ad650e9e -Dsonar.test.exclusions=src/main/java/** -Dsonar.java.binaries=target/classes
+    - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
     - cd ..
     - ssh -i ./deploy_key saberfa0@129.194.10.127 cd couchpotato/helm-charts/test/couchpotato-backend/
     - ssh -i ./deploy_key saberfa0@129.194.10.127 ls -la
@@ -39,10 +42,10 @@ before_install:
 - echo -e "Host 129.194.10.127\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 - ssh-add ./deploy_key
 - ssh -i ./deploy_key saberfa0@129.194.10.127 pwd
-
-# safelist
 branches:
   only:
   - main
   - staging
   - dev
+
+    
