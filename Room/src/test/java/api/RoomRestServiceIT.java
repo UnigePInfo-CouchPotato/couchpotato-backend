@@ -26,7 +26,7 @@ class RoomRestServiceIT {
     @BeforeAll
     public static void setup() {
         RestAssured.baseURI = "http://localhost:28080/rooms";
-        RestAssured.port = 9000;
+        RestAssured.port = 9080;
 
         testSetMode();
     }
