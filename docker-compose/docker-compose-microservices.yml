@@ -41,7 +41,7 @@ services:
     networks:
       - backend-network
     ports: #specify container port mapping
-      - "9000:28080"
+      - "9080:28080"
     depends_on:
       - room-database
 
