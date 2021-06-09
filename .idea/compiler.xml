@@ -7,18 +7,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="UserManagement" />
         <module name="Room" />
         <module name="Recommendation" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="Backend" target="1.8" />
       <module name="Microservice1" target="11" />
       <module name="Microservice2" target="11" />
       <module name="Microservice3" target="11" />
-      <module name="Recommendation" target="1.8" />
-      <module name="Room" target="1.8" />
       <module name="UserManagement" target="1.8" />
     </bytecodeTargetLevel>
   </component>

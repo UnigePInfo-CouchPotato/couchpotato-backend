@@ -58,7 +58,7 @@ class RoomServiceImplTest {
 
     private Room getRandomRoom() {
         Room r = new Room();
-        r.setRoomClosed(new Random().nextBoolean());
+        r.setRoomClosed(false);
         r.setRoomAdmin("Test administrator");
         r.setRoomId(UUID.randomUUID().toString().substring(24));
         return r;
