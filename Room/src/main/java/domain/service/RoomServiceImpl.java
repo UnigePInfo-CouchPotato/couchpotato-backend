@@ -47,19 +47,20 @@ public class RoomServiceImpl implements RoomService {
 
 	/*CONSTANTS*/
 	private static final String AUTH0_URL = "https://couchpotato.eu.auth0.com/v2/userinfo";
+	private static final String UNAUTHORIZED = "Unauthorized";
 	private static final String RECOMMENDATION_SERVICE_URL = "http://recommendation-service:28080/recommendation/";
 
 
 	/*USEFUL METHODS*/
-	private String createID() { return UUID.randomUUID().toString().substring(24); }
+	public String createID() { return UUID.randomUUID().toString().substring(24); }
 
-	private String makeRequest(String url, String token) {
+	public String makeRequest(String url, String token) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(url);
 		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
 
 		if (response.getStatusInfo() == Response.Status.UNAUTHORIZED) {
-			return "Unauthorized";
+			return UNAUTHORIZED;
 		}
 
 		if (response.getStatus() != 200) {
@@ -75,6 +76,9 @@ public class RoomServiceImpl implements RoomService {
 		WebTarget webTarget = client.target(AUTH0_URL);
 		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
 		String str = response.readEntity(String.class);
+		if (Objects.equals(str, UNAUTHORIZED))
+			return new JSONObject();
+
 		return new JSONObject(str);
 	}
 
@@ -95,7 +99,7 @@ public class RoomServiceImpl implements RoomService {
 		return true;
 	}
 
-	private <K, V> Stream<K> keys(Map<K, V> map, V value) {
+	public <K, V> Stream<K> keys(Map<K, V> map, V value) {
 		return map
 				.entrySet()
 				.stream()
@@ -103,7 +107,7 @@ public class RoomServiceImpl implements RoomService {
 				.map(Map.Entry::getKey);
 	}
 
-	private String getUserPreferences(JSONObject userInfo) {
+	public String getUserPreferences(JSONObject userInfo) {
 		try {
 			JSONObject metadata = userInfo.getJSONObject("https://pinfo2.unige.ch/metadata");
 			JSONArray preferences = metadata.getJSONArray("preferences");
@@ -115,20 +119,24 @@ public class RoomServiceImpl implements RoomService {
 		}
 	}
 
-	private String getUserNickname(JSONObject userInfo) {
-		return userInfo.getString("nickname");
+	public String getUserNickname(JSONObject userInfo) {
+		try {
+			return userInfo.getString("nickname");
+		} catch (JSONException e) {
+			return "";
+		}
 	}
 
 	@Override
 	@Transactional
-	public void endJoinPeriod(String roomId, String token) {
+	public void endJoinPeriod(String roomId) {
 		Room room = get(roomId);
 		room.setUsersCanJoin(false);
 	}
 
 	@Override
 	@Transactional
-	public void endVotingPeriod(String roomId, String token) {
+	public void endVotingPeriod(String roomId) {
 		Room room = get(roomId);
 		room.setUsersCanVote(false);
 	}
@@ -207,7 +215,7 @@ public class RoomServiceImpl implements RoomService {
     	log.info("Check if the token is valid");
 		String response = makeRequest(AUTH0_URL, token);
 
-		return response.equals("Unauthorized");
+		return response.equals(UNAUTHORIZED);
 	}
 
 	@Override
@@ -336,13 +344,20 @@ public class RoomServiceImpl implements RoomService {
 	public boolean isUserInRoom(String roomId, String token) {
 		log.info("Check if user is already in a room");
 		JSONObject userInfo = getUserInfo(token);
-		return roomUserService.exists(roomId, getUserNickname(userInfo));
+		String userNickname = getUserNickname(userInfo);
+		if (userNickname.isEmpty())
+			return false;
+
+		return roomUserService.exists(roomId, userNickname);
 	}
 
 	@Override
 	public String getRoomUsers(String roomId) {
 		log.info("Get all users in a room");
 		StringBuilder stringBuilder = new StringBuilder();
+		if (roomUserService == null)
+			return "";
+
 		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
 
 		stringBuilder.append("[");
@@ -374,7 +389,6 @@ public class RoomServiceImpl implements RoomService {
 		log.info("Get a specific room");
 		return em.find(Room.class, roomId);
 	}
-
 
 	@Override
 	public Long count() {

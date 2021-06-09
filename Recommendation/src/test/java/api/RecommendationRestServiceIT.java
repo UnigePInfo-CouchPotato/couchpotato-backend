@@ -1,18 +1,10 @@
 package api;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.LogDetail;
-import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import javax.ws.rs.core.MediaType;
 
-//import static io.restassured.RestAssured.when;
-//import static io.restassured.RestAssured.given;
-//import static org.hamcrest.Matchers.equalTo;
-//import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.*;
 import static io.restassured.RestAssured.*;
 import io.restassured.http.ContentType;
@@ -45,9 +37,7 @@ class RecommendationRestServiceIT {
     }
 
     @Test
-    public void testResponseForm() {
-        String num = "27";
-
+    void testResponseForm() {
         given()
             .pathParam("idGenres", 27)
             .when()
@@ -59,7 +49,7 @@ class RecommendationRestServiceIT {
 
 
     @Test
-    public void testResponseId() {
+    void testResponseId() {
 
         given()
                 .pathParam("idGenres","Patate")
@@ -72,7 +62,7 @@ class RecommendationRestServiceIT {
 
 
     @Test
-    public void testResponseLength() {
+    void testResponseLength() {
         given().
                 pathParam("idGenres", 27).
                 when().

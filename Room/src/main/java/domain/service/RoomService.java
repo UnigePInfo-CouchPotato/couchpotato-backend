@@ -24,7 +24,7 @@ public interface RoomService {
 	String getMovieWithMostVotes(String roomId);
 	String getMovies(String roomId, String token);
 	JSONObject getUserInfo(String token);
-	void endJoinPeriod(String roomId, String token);
-	void endVotingPeriod(String roomId, String token);
+	void endJoinPeriod(String roomId);
+	void endVotingPeriod(String roomId);
 
 }
