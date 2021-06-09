@@ -245,6 +245,29 @@ class RoomServiceImplTest {
         assertNotNull(rooms);
         assertEquals(rooms, roomServiceImpl.getAll());
         assertEquals(rooms.size(), roomServiceImpl.getAll().size());
+        assertEquals(rooms.size(), roomServiceImpl.count());
+    }
+
+    @Test
+    void testCreateRoom() {
+        String token = UUID.randomUUID().toString().substring(24);
+        String roomId = roomServiceImpl.createRoom(token);
+
+        assertTrue(roomServiceImpl.exists(roomId));
+    }
+
+    @Test
+    void testJoinRoom() {
+        HashMap<Integer, List<Room>> hashMap = initDataStore();
+        Set<Integer> keySet = hashMap.keySet();
+        List<Room> rooms = hashMap.get(keySet.iterator().next());
+        String roomId = rooms.get(0).getRoomId();
+        String token = UUID.randomUUID().toString().substring(24);
+        String nickname = "Admin";
+        roomServiceImpl.joinRoom(roomId, token);
+        roomUserServiceImpl.create(roomId, nickname);
+
+        assertTrue(roomUserServiceImpl.exists(roomId, nickname));
     }
 
     @Test
@@ -256,6 +279,18 @@ class RoomServiceImplTest {
         String expectedString = "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
 
         assertEquals(expectedString, roomServiceImpl.getMovieWithMostVotes(roomId));
+    }
+
+    @Test
+    void testGetMovies() {
+        HashMap<Integer, List<Room>> hashMap = initDataStore();
+        Set<Integer> keySet = hashMap.keySet();
+        List<Room> rooms = hashMap.get(keySet.iterator().next());
+        String roomId = rooms.get(0).getRoomId();
+        String token = UUID.randomUUID().toString().substring(24);
+        String expectedString = "\"error\":\"Please set some preferences for this room\"";
+
+        assertEquals(expectedString, roomServiceImpl.getMovies(roomId, token));
     }
 
     @Test

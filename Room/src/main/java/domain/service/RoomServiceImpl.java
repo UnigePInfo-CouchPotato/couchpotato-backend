@@ -160,7 +160,9 @@ public class RoomServiceImpl implements RoomService {
 		em.persist(room);
 		em.flush();
 		String createdRoomId = room.getRoomId();
-		roomUserService.create(createdRoomId, getUserNickname(userInfo));
+		if (roomUserService != null)
+			roomUserService.create(createdRoomId, getUserNickname(userInfo));
+
 		String str = getUserPreferences(userInfo);
 		room.setUserPreferences(str);
 		return createdRoomId;
@@ -176,7 +178,9 @@ public class RoomServiceImpl implements RoomService {
 		String userPreferences = room.getUserPreferences();
 		String updatedPreferences = userPreferences + "," + newPreferences;
 		room.setUserPreferences(updatedPreferences);
-		roomUserService.create(roomId, getUserNickname(userInfo));
+
+		if (roomUserService != null)
+			roomUserService.create(roomId, getUserNickname(userInfo));
 	}
 
 	@Override

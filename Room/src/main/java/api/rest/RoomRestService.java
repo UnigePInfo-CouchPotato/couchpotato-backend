@@ -1,4 +1,4 @@
-package api;
+package api.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import domain.model.Room;
