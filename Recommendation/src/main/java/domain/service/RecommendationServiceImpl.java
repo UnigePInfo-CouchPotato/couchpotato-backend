@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @ApplicationScoped
 @Log
 public class RecommendationServiceImpl implements RecommendationService {
-    private boolean isInteger(Object object) {
+    public boolean isInteger(Object object) {
         if(object instanceof Integer) {
             return true;
         } else {

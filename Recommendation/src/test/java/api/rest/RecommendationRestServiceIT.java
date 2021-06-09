@@ -47,7 +47,7 @@ class RecommendationRestServiceIT {
             .contentType(ContentType.JSON);
     }
 
-
+/*
     @Test
     void testResponseId() {
 
@@ -58,7 +58,7 @@ class RecommendationRestServiceIT {
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .contentType(ContentType.JSON);
-    }
+    }*/
 
 
     @Test
@@ -71,6 +71,18 @@ class RecommendationRestServiceIT {
                 statusCode(HttpStatus.SC_OK).
                 body("$.size()",lessThan(6));
 
+    }
+
+    @Test
+    void testGetContent() {
+        given().
+                pathParam("details",551).
+
+        when()
+                .get("/detail/{details}")
+                .then()
+                //.statusCode(HttpStatus.SC_OK)
+                .body("original_title",equalTo("The Poseidon Adventure"));
     }
 
 }
