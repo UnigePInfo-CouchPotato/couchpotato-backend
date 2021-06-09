@@ -1,13 +1,12 @@
-package domain.service;
+package domain.model;
 
-import domain.model.Singleton;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SingletonTest {
+class SingletonTest {
 
     @Test
     void testSingleton() {
