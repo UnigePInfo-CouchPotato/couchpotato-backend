@@ -47,6 +47,7 @@ public class RoomServiceImpl implements RoomService {
 
 	/*CONSTANTS*/
 	private static final String AUTH0_URL = "https://couchpotato.eu.auth0.com/v2/userinfo";
+	private static final String UNAUTHORIZED = "Unauthorized";
 	private static final String RECOMMENDATION_SERVICE_URL = "http://recommendation-service:28080/recommendation/";
 
 
@@ -59,7 +60,7 @@ public class RoomServiceImpl implements RoomService {
 		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
 
 		if (response.getStatusInfo() == Response.Status.UNAUTHORIZED) {
-			return "Unauthorized";
+			return UNAUTHORIZED;
 		}
 
 		if (response.getStatus() != 200) {
@@ -75,7 +76,7 @@ public class RoomServiceImpl implements RoomService {
 		WebTarget webTarget = client.target(AUTH0_URL);
 		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
 		String str = response.readEntity(String.class);
-		if (Objects.equals(str, "Unauthorized"))
+		if (Objects.equals(str, UNAUTHORIZED))
 			return new JSONObject();
 
 		return new JSONObject(str);
@@ -214,7 +215,7 @@ public class RoomServiceImpl implements RoomService {
     	log.info("Check if the token is valid");
 		String response = makeRequest(AUTH0_URL, token);
 
-		return response.equals("Unauthorized");
+		return response.equals(UNAUTHORIZED);
 	}
 
 	@Override
