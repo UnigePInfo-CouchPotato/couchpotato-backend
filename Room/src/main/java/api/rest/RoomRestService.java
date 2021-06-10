@@ -31,25 +31,34 @@ public class RoomRestService {
     private RoomUserService roomUserService;
 
     /*CONSTANTS*/
-    private static final String DATA = "\"data\":";
+    private static final String DATA = "data";
+    private static final String ERROR = "error";
     private static final String BEARER = "Bearer ";
+    private static final String MESSAGE = "message";
     private static final String NICKNAME = "nickname";
     private static final String MODE_PROPERTY = "MODE";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String AUTHORIZATION = "Authorization";
-    private static final String BAD_REQUEST_ERROR_MESSAGE = "{" + "\"error\":\"Invalid parameters. Please check your request\"" + "}";
+
+    /*HANDLE ERROR MESSAGES*/
+    private static String generateBadRequestErrorMessage() {
+        JSONObject errorMessage = new JSONObject();
+        errorMessage.put(ERROR, "Invalid parameters. Please check your request");
+        return errorMessage.toString();
+    }
 
     /*HANDLING PARAMETERS*/
     private Response handleRoomIdQueryParam(String roomId) {
         //Check if params are valid (i.e. userId is equal to -1)
         if (roomId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(generateBadRequestErrorMessage()).build();
         }
 
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %s does not exist\"", roomId) + "}";
-            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Room %s does not exist", roomId));
+            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
         }
 
         //Default -> Return no content
@@ -59,7 +68,7 @@ public class RoomRestService {
     private Response handleParams(String roomId, List<String> authorization, boolean notJoiningRoom) {
         //Check if params are valid
         if (roomId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(generateBadRequestErrorMessage()).build();
         }
 
         if (authorization == null || authorization.isEmpty()) {
@@ -68,8 +77,9 @@ public class RoomRestService {
 
         //Check if room exists
         if (!roomService.exists(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %s does not exist\"", roomId) + "}";
-            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Room %s does not exist", roomId));
+            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
         }
 
         String bearerToken = authorization.get(0).replace(BEARER, "");
@@ -83,8 +93,9 @@ public class RoomRestService {
         /*Check if user is in this specific room
         If "notJoiningRoom" is false, do not check if user is in the room*/
         if (notJoiningRoom && !roomUserService.exists(roomId, userNickname)) {
-            String errorMessage = "{" + String.format("\"error\":\"User %s is not in this room\"", userNickname) + "}";
-            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("User %s is not in this room", userNickname));
+            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
         }
 
         //Default -> Return no content
@@ -122,7 +133,7 @@ public class RoomRestService {
     public Response welcome() {
         JSONObject welcomeMessage = new JSONObject();
         welcomeMessage.put("service", "room");
-        welcomeMessage.put("message", "Welcome!");
+        welcomeMessage.put(MESSAGE, "Welcome!");
         return Response.status(Response.Status.OK).entity(welcomeMessage.toString()).build();
     }
 
@@ -171,8 +182,12 @@ public class RoomRestService {
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        String message = "{" + DATA + "{" + "\"exists\":" + roomService.exists(roomId) + "}" + "}";
-        return Response.status(Response.Status.OK).entity(message).build();
+        JSONObject message = new JSONObject();
+        JSONObject data = new JSONObject();
+        data.put("exists", roomService.exists(roomId));
+        message.put(DATA, data);
+
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
     @GET
@@ -200,8 +215,12 @@ public class RoomRestService {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
         String bearerToken = authorization.get(0).replace(BEARER, "");
 
-        String message = "{" + DATA + "{" + "\"isRoomAdmin\":" + roomService.isRoomAdmin(roomId, bearerToken) + "}" + "}";
-        return Response.status(Response.Status.OK).entity(message).build();
+        JSONObject message = new JSONObject();
+        JSONObject data = new JSONObject();
+        data.put("isRoomAdmin", roomService.isRoomAdmin(roomId, bearerToken));
+        message.put(DATA, data);
+
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
     @GET
@@ -238,8 +257,11 @@ public class RoomRestService {
 
         //Create a room
         String roomId = roomService.createRoom(bearerToken);
-        String successMessage = "{" + DATA + "{" + "\"roomId\":" + roomId + "}" + "}";
-        return Response.status(Response.Status.CREATED).entity(successMessage).build();
+        JSONObject successMessage = new JSONObject();
+        JSONObject data = new JSONObject();
+        data.put("roomId", roomId);
+        successMessage.put(DATA, data);
+        return Response.status(Response.Status.CREATED).entity(successMessage.toString()).build();
     }
 
     @GET
@@ -253,8 +275,9 @@ public class RoomRestService {
 
         //Delete a room
         roomService.deleteRoom(roomId);
-        String successMessage = "{" + String.format("\"message\":\"Room %s has been deleted successfully\"", roomId) + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, String.format("Room %s has been deleted successfully", roomId));
+        return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
     }
 
     @GET
@@ -271,14 +294,16 @@ public class RoomRestService {
 
         //Check if user is the administrator of the room
         if (!roomService.isRoomAdmin(roomId, bearerToken)) {
-            String errorMessage = "{" + String.format("\"error\":\"Unauthorized to end the voting period of the room %s\"", roomId) + "}";
-            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Unauthorized to end the voting period of the room %s", roomId));
+            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage.toString()).build();
         }
 
         //End the voting period
         roomService.endVotingPeriod(roomId);
-        String successMessage = "{" + String.format("\"message\":\"Voting period of room %s has been ended successfully\"", roomId) + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, String.format("Voting period of room %s has been ended successfully", roomId));
+        return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
     }
 
     @GET
@@ -295,14 +320,16 @@ public class RoomRestService {
 
         //Check if user is the administrator of the room
         if (!roomService.isRoomAdmin(roomId, bearerToken)) {
-            String errorMessage = "{" + String.format("\"error\":\"Unauthorized to end the join period of the room %s\"", roomId) + "}";
-            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Unauthorized to end the join period of the room %s", roomId));
+            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage.toString()).build();
         }
 
         //End the join period
         roomService.endJoinPeriod(roomId);
-        String successMessage = "{" + String.format("\"message\":\"Join period of room %s has been ended successfully\"", roomId) + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, String.format("Join period of room %s has been ended successfully", roomId));
+        return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
     }
 
     @GET
@@ -318,20 +345,23 @@ public class RoomRestService {
         String bearerToken = authorization.get(0).replace(BEARER, "");
         //Check if user is admin of the room
         if(!roomService.isRoomAdmin(roomId, bearerToken)) {
-            String errorMessage = "{" + String.format("\"error\":\"Unauthorized to close the room %s\"", roomId) + "}";
-            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Unauthorized to close the room %s", roomId));
+            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage.toString()).build();
         }
 
         //Close the room
         if (!roomService.closeRoom(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Room %s is already closed\"", roomId) + "}";
-            return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Room %s is already closed", roomId));
+            return Response.status(Response.Status.CONFLICT).entity(errorMessage.toString()).build();
         }
 
         roomService.deleteRoom(roomId);
 
-        String successMessage = "{" + String.format("\"message\":\"Room %s has been closed successfully\"", roomId) + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, String.format("Room %s has been closed successfully", roomId));
+        return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
     }
 
     @GET
@@ -348,20 +378,23 @@ public class RoomRestService {
 
         //Check if user is already in the room
         if(roomService.isUserInRoom(roomId, bearerToken)) {
-            String errorMessage = "{" + "\"error\":\"You are already in this room\"" + "}";
-            return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, "You are already in this room");
+            return Response.status(Response.Status.CONFLICT).entity(errorMessage.toString()).build();
         }
 
         //Check if user can join the room
         if (!roomService.canJoinRoom(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Join period has been ended for room %s\"", roomId) + "}";
-            return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Join period has been ended for room %s", roomId));
+            return Response.status(Response.Status.CONFLICT).entity(errorMessage.toString()).build();
         }
 
         //Add the user to the room
         roomService.joinRoom(roomId, bearerToken);
-        String successMessage = "{" + String.format("\"message\":\"You have joined the room %s successfully\"", roomId) + "}";
-        return Response.status(Response.Status.CREATED).entity(successMessage).build();
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, String.format("You have joined the room %s successfully", roomId));
+        return Response.status(Response.Status.CREATED).entity(successMessage.toString()).build();
     }
 
     @POST
@@ -379,8 +412,9 @@ public class RoomRestService {
 
         //Check if user can vote
         if (!roomService.canVote(roomId)) {
-            String errorMessage = "{" + String.format("\"error\":\"Voting is no more allowed for room %s\"", roomId) + "}";
-            return Response.status(Response.Status.CONFLICT).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Voting is no more allowed for room %s", roomId));
+            return Response.status(Response.Status.CONFLICT).entity(errorMessage.toString()).build();
         }
 
         String bearerToken = authorization.get(0).replace(BEARER, "");
@@ -392,13 +426,14 @@ public class RoomRestService {
 
         //Handle errors with array
         if (choice == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_ERROR_MESSAGE).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(generateBadRequestErrorMessage()).build();
         }
 
         int length = roomService.get(roomId).getNumberOfMovies();
         if (choice.size() != length) {
-            String errorMessage = "{" + String.format("\"error\":\"Your array should be of length %d\"", length) + "}";
-            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Your array should be of length %d", length));
+            return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage.toString()).build();
         }
 
         HashMap<String, String> hashMap = new HashMap<>();
@@ -413,8 +448,9 @@ public class RoomRestService {
         }
 
         roomUserService.setUserVotes(roomId, userInfo.getString(NICKNAME), jsonArray);
-        String successMessage = "{" + "\"message\":\"Your votes have been saved successfully\"" + "}";
-        return Response.status(Response.Status.OK).entity(successMessage).build();
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, "Your votes have been saved successfully");
+        return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
     }
 
     @GET

@@ -106,20 +106,17 @@ class RoomRestServiceIT {
     void testGetUsers() {
         String userNo = "user0";
         String userNickname = "Test administrator";
-        String str = "[{" + String.format("\"user0\":\"%s\"", userNickname) + "}]";
-        JSONArray expected = new JSONArray(str);
+        JSONArray expected = new JSONArray();
+        JSONObject user = new JSONObject();
+        user.put(userNo, userNickname);
+        expected.put(user);
         String response = given()
                 .queryParam("roomId", "99rxfyog0a87")
                 .when()
                 .get("/users")
                 .asString();
 
-        JSONArray users = new JSONArray(response);
-        JSONObject user = users.getJSONObject(0);
-
-        assertThat(expected.toString(), equalTo(users.toString()));
-        assertThat(user.keys().next(), equalTo(userNo));
-        assertThat(user.get(userNo), equalTo(userNickname));
+        assertThat(response, equalTo(expected.toString()));
     }
 
     @Test
