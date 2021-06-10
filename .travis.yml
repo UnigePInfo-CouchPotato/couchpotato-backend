@@ -15,6 +15,7 @@ jobs:
   - stage: Prepare
     script:
     - mvn clean install 
+    - mvn verify
   - stage: Build
     script:
     - pwd
