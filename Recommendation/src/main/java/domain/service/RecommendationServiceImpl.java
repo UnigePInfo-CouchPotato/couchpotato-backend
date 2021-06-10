@@ -35,10 +35,6 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private final Random rand = new SecureRandom();
 
-    public RecommendationServiceImpl() {
-
-    }
-
     private static final String ERROR = "error";
     private static final String SUCCESS = "success";
     private static final String MALFORMED_REQUEST = "Malformed request";

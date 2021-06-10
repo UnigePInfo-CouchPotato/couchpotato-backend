@@ -531,8 +531,8 @@ public class RoomRestService {
         final String movie = roomService.getMovieWithMostVotes(roomId);
         JSONObject message = new JSONObject();
         JSONObject movieAsJSON = new JSONObject(movie);
-        if (movieAsJSON.keySet().contains("message")) {
-            String msg = movieAsJSON.getString("message");
+        if (movieAsJSON.keySet().contains(MESSAGE)) {
+            String msg = movieAsJSON.getString(MESSAGE);
             message.put(ERROR, msg);
         } else {
             message.put(DATA, movieAsJSON);
@@ -561,7 +561,7 @@ public class RoomRestService {
             message.put(DATA, moviesAsJSON);
         } catch (JSONException e) {
             JSONObject errorMsg = new JSONObject(movies);
-            String msg = errorMsg.getString("message");
+            String msg = errorMsg.getString(MESSAGE);
             message.put(ERROR, msg);
         }
 
