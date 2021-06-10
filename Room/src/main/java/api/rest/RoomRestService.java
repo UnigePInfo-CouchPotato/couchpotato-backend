@@ -9,6 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -170,7 +171,20 @@ public class RoomRestService {
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        return Response.status(Response.Status.OK).entity(roomService.get(roomId)).build();
+        Room room = roomService.get(roomId);
+        JSONObject message = new JSONObject();
+        JSONObject data = new JSONObject(room);
+
+        String roomAdmin = data.getString("roomAdmin");
+        JSONObject roomAdminAsJSON = new JSONObject(roomAdmin);
+        data.put("roomAdmin", roomAdminAsJSON);
+
+        String[] userPreferences = data.getString("userPreferences").split(",");
+        JSONArray userPreferencesAsJSON = new JSONArray(userPreferences);
+        data.put("userPreferences", userPreferencesAsJSON);
+
+        message.put(DATA, data);
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
     @GET
@@ -199,7 +213,12 @@ public class RoomRestService {
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        return Response.status(Response.Status.OK).entity(roomService.getRoomUsers(roomId)).build();
+        String roomUsers = roomService.getRoomUsers(roomId);
+        JSONObject message = new JSONObject();
+        JSONArray data = new JSONArray(roomUsers);
+        message.put(DATA, data);
+
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
     @GET
@@ -233,7 +252,13 @@ public class RoomRestService {
             return response;
 
         Room room = roomService.get(roomId);
-        return Response.status(Response.Status.OK).entity(room.getRoomAdmin()).build();
+        String roomAdmin = room.getRoomAdmin();
+
+        JSONObject message = new JSONObject();
+        JSONObject data = new JSONObject(roomAdmin);
+        message.put(DATA, data);
+
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
     @GET
@@ -330,6 +355,40 @@ public class RoomRestService {
         JSONObject successMessage = new JSONObject();
         successMessage.put(MESSAGE, String.format("Join period of room %s has been ended successfully", roomId));
         return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
+    }
+
+    @GET
+    @Path("/can-join")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Verify if within join period")
+    public Response checkCanJoin(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
+        Response response = handleParamsAndTests(roomId, headers, true);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        JSONObject message = new JSONObject();
+        JSONObject data = new JSONObject();
+        data.put("usersCanJoin", roomService.canJoinRoom(roomId));
+        message.put(DATA, data);
+
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
+    }
+
+    @GET
+    @Path("/can-vote")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Verify if within vote period")
+    public Response checkCanVote(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
+        Response response = handleParamsAndTests(roomId, headers, true);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        JSONObject message = new JSONObject();
+        JSONObject data = new JSONObject();
+        data.put("usersCanVote", roomService.canVote(roomId));
+        message.put(DATA, data);
+
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
     @GET
@@ -464,8 +523,16 @@ public class RoomRestService {
             return response;
 
         final String movie = roomService.getMovieWithMostVotes(roomId);
+        JSONObject message = new JSONObject();
+        JSONObject movieAsJSON = new JSONObject(movie);
+        if (movieAsJSON.keySet().contains("message")) {
+            String msg = movieAsJSON.getString("message");
+            message.put(ERROR, msg);
+        } else {
+            message.put(DATA, movieAsJSON);
+        }
 
-        return Response.status(Response.Status.OK).entity(movie).build();
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
     @GET
@@ -481,7 +548,18 @@ public class RoomRestService {
         String bearerToken = authorization.get(0).replace(BEARER, "");
 
         String movies = roomService.getMovies(roomId, bearerToken);
-        return Response.status(Response.Status.OK).entity(movies).build();
+
+        JSONObject message = new JSONObject();
+        try {
+            JSONArray moviesAsJSON = new JSONArray(movies);
+            message.put(DATA, moviesAsJSON);
+        } catch (JSONException e) {
+            JSONObject errorMsg = new JSONObject(movies);
+            String msg = errorMsg.getString("message");
+            message.put(ERROR, msg);
+        }
+
+        return Response.status(Response.Status.OK).entity(message.toString()).build();
     }
 
 }
