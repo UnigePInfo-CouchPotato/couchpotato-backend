@@ -62,9 +62,9 @@ class RoomRestServiceIT {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("roomId", equalTo("Fgf2NLjhh9mx"))
-                .body("roomClosed", equalTo(true))
-                .body("numberOfMovies", equalTo(0));
+                .body("data.roomId", equalTo("Fgf2NLjhh9mx"))
+                .body("data.roomClosed", equalTo(true))
+                .body("data.numberOfMovies", equalTo(0));
     }
 
     @Test
@@ -79,14 +79,20 @@ class RoomRestServiceIT {
 
     @Test
     void testGetRoomAdmin() {
-        given()
+        JSONObject expected = new JSONObject();
+        JSONObject data = new JSONObject();
+        expected.put("data", data);
+
+        String response = given()
                 .queryParam("roomId", "7b07c2qj7lvc")
                 .when()
                 .get("/admin")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body(containsString("{}"));
+                .extract().asString();
+
+        assertThat(response, equalTo(expected.toString()));
     }
 
     @Test
@@ -106,10 +112,11 @@ class RoomRestServiceIT {
     void testGetUsers() {
         String userNo = "user0";
         String userNickname = "Test administrator";
-        JSONArray expected = new JSONArray();
-        JSONObject user = new JSONObject();
-        user.put(userNo, userNickname);
-        expected.put(user);
+        JSONObject expected = new JSONObject();
+        JSONArray users = new JSONArray();
+        users.put(userNickname);
+        expected.put("data", users);
+
         String response = given()
                 .queryParam("roomId", "99rxfyog0a87")
                 .when()
@@ -275,6 +282,30 @@ class RoomRestServiceIT {
     }
 
     @Test
+    void testCanJoin() {
+        given()
+          .queryParam("roomId", "Fgf2NLjhh9mx")
+          .when()
+          .get("/can-join")
+          .then()
+          .assertThat()
+          .statusCode(HttpStatus.SC_OK)
+          .body("data.usersCanJoin", equalTo(false));
+    }
+
+    @Test
+    void testCanVote() {
+        given()
+          .queryParam("roomId", "Fgf2NLjhh9mx")
+          .when()
+          .get("/can-vote")
+          .then()
+          .assertThat()
+          .statusCode(HttpStatus.SC_OK)
+          .body("data.usersCanVote", equalTo(false));
+    }
+
+    @Test
     void testJoinRoom() {
         given()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
@@ -372,7 +403,10 @@ class RoomRestServiceIT {
 
     @Test
     void testGetResults() {
-        given()
+        JSONObject expected = new JSONObject();
+        expected.put("error", "Please set at least 3 genres");
+
+        String response = given()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
                 .queryParam("roomId", "WN5sgnxYD8tC")
                 .when()
@@ -380,7 +414,9 @@ class RoomRestServiceIT {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body(containsString(""));
+                .extract().asString();
+
+        assertThat(response, equalTo(expected.toString()));
     }
 
     @Test
