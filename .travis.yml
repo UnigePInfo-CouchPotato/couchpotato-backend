@@ -1,6 +1,8 @@
 language: java
 services:
 - docker
+git:
+  depth: false
 addons:
   sonarcloud:
     organization: "unigepinfo-couchpotato-frontend"
