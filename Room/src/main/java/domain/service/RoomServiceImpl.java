@@ -56,18 +56,22 @@ public class RoomServiceImpl implements RoomService {
 
 	public String makeRequest(String url, String token) {
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(url);
-		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
+		try {
+			WebTarget webTarget = client.target(url);
+			Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
 
-		if (response.getStatusInfo() == Response.Status.UNAUTHORIZED) {
-			return UNAUTHORIZED;
+			if (response.getStatusInfo() == Response.Status.UNAUTHORIZED) {
+				return UNAUTHORIZED;
+			}
+
+			if (response.getStatus() != 200) {
+				return "Failed : HTTP error code : " + response.getStatus();
+			}
+
+			return response.readEntity(String.class);
+		} catch (Exception e) {
+			return "[]";
 		}
-
-		if (response.getStatus() != 200) {
-			return "Failed : HTTP error code : " + response.getStatus();
-		}
-
-		return response.readEntity(String.class);
 	}
 
 	@Override
@@ -231,6 +235,9 @@ public class RoomServiceImpl implements RoomService {
 
 		if (jsonObject == null)
 			return "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
+
+		if (roomUserService == null)
+			return "No movie";
 
 		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
     	HashMap<String, Integer> index = new HashMap<>();

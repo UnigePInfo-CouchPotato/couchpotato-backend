@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(JpaUnit.class)
 @ExtendWith(MockitoExtension.class)
-public class RoomUserServiceImplTest {
+class RoomUserServiceImplTest {
 
     @Spy
     @PersistenceContext(unitName = "RoomPUTest")
