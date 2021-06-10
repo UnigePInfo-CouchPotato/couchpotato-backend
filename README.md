@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/UnigePInfo-CouchPotato/couchpotato-backend.svg?branch=staging)](https://travis-ci.com/UnigePInfo-CouchPotato/couchpotato-backend)
 # COUCHPOTATO - Backend
 
-## This is a project...
+## JAVA JAVAX.RS API
 
 ## Run
 
