@@ -21,7 +21,8 @@ jobs:
     script:
     - mvn test
     - mvn verify
-    - mvn clean verify sonar:sonar -Pcoverage -Dsonar.projectKey=CouchpotatoBackend -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=e55a69870244294e6f44dbba5b457b0db13400d8
+    #- mvn clean verify sonar:sonar -Pcoverage -Dsonar.projectKey=CouchpotatoBackend -Dsonar.host.url=https://sonarcloud.io 
+    - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=UnigePInfo-CouchPotato_couchpotato-backend -Dsonar.login=ba204499107e502228d66a8f5e26ad730bc8ba48
   - stage: Docker
     script:
     - pwd
