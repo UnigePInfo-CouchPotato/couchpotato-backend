@@ -152,14 +152,6 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         Response response = webTarget.request(MediaType.TEXT_PLAIN).get();
 
-        if (response.getStatus() != 200) {
-            JSONObject message = new JSONObject();
-            message.put(SUCCESS, false);
-            message.put(ERROR, MALFORMED_REQUEST);
-            String str = message.toString();
-            return Response.status(Response.Status.fromStatusCode(422)).entity(str).build();
-        }
-
         return Response.status(Response.Status.OK).entity(response.readEntity(String.class)).build();
 
     }
