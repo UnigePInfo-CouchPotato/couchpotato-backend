@@ -30,12 +30,11 @@ import java.util.stream.Stream;
 @Log
 public class RoomServiceImpl implements RoomService {
 
-    @PersistenceContext(unitName = "RoomPU")
+	@PersistenceContext(unitName = "RoomPU")
     private EntityManager em;
 
-    @Inject
+	@Inject
 	private RoomUserService roomUserService;
-
     public RoomServiceImpl(){
 
 	}
@@ -45,9 +44,12 @@ public class RoomServiceImpl implements RoomService {
     	this.em = em;
 	}
 
+
 	/*CONSTANTS*/
-	private static final String AUTH0_URL = "https://couchpotato.eu.auth0.com/v2/userinfo";
+	private static final String ERROR = "error";
+	private static final String MESSAGE = "message";
 	private static final String UNAUTHORIZED = "Unauthorized";
+	private static final String AUTH0_URL = "https://couchpotato.eu.auth0.com/v2/userinfo";
 	private static final String RECOMMENDATION_SERVICE_URL = "http://recommendation-service:28080/recommendation/";
 
 
@@ -83,7 +85,11 @@ public class RoomServiceImpl implements RoomService {
 		if (Objects.equals(str, UNAUTHORIZED))
 			return new JSONObject();
 
-		return new JSONObject(str);
+		JSONObject jsonObject = new JSONObject(str);
+		if (jsonObject.keySet().contains(ERROR))
+			return new JSONObject();
+
+		return jsonObject;
 	}
 
 	public boolean isInteger(Object object) {
@@ -231,11 +237,17 @@ public class RoomServiceImpl implements RoomService {
 		Map<String, JSONObject> roomMoviesData = singleton.getHashMap();
 		JSONObject jsonObject = roomMoviesData.get(roomId);
 
-		if (jsonObject == null)
-			return "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
+		if (jsonObject == null) {
+			JSONObject message = new JSONObject();
+			message.put(MESSAGE, String.format("No data for room %s", roomId));
+			return message.toString();
+		}
 
-		if (roomUserService == null)
-			return "No movie";
+		if (roomUserService == null) {
+			JSONObject message = new JSONObject();
+			message.put(ERROR, "No movie");
+			return message.toString();
+		}
 
 		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
     	HashMap<String, Integer> index = new HashMap<>();
@@ -259,8 +271,11 @@ public class RoomServiceImpl implements RoomService {
 		String movieIdWithMostVotes = Collections.max(index.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
 		JSONObject movie = jsonObject.getJSONObject(movieIdWithMostVotes);
 
-		if (movie == null || movie.isEmpty())
-			return "{" + String.format("\"message\":\"No data for movie %s\"", movieIdWithMostVotes) + "}";
+		if (movie == null || movie.isEmpty()) {
+			JSONObject message = new JSONObject();
+			message.put(MESSAGE, String.format("No data for movie %s", movieIdWithMostVotes));
+			return message.toString();
+		}
 
 		return movie.toString();
 	}
@@ -271,6 +286,8 @@ public class RoomServiceImpl implements RoomService {
 		log.info("Get movies from recommendation service");
 
 		Room room = get(roomId);
+		JSONObject message = new JSONObject();
+		message.put(ERROR, "Please set some preferences for this room");
 
 		//Check if movies have been set already
 		String movies = room.getMovies();
@@ -279,13 +296,13 @@ public class RoomServiceImpl implements RoomService {
 
 		String preferences = room.getUserPreferences();
 		if (preferences.isEmpty())
-			return "\"error\":\"Please set some preferences for this room\"";
+			return message.toString();
 
 		LinkedHashMap<Integer, Integer> index = new LinkedHashMap<>();
 		List<String> genres = Arrays.asList(preferences.split(","));
 		boolean areNumbers = genres.stream().allMatch(this::isInteger);
 		if (!areNumbers)
-			return "\"error\":\"Please set some preferences for this room\"";
+			return message.toString();
 
 		List<Integer> integers = Arrays.stream(preferences.split(",")).map(Integer::parseInt).collect(Collectors.toList());
 		for (Integer id : integers) {
@@ -294,7 +311,9 @@ public class RoomServiceImpl implements RoomService {
 		}
 
 		if (index.size() < 3) {
-			return "{" + "\"message\":\"Please set at least 3 genres\"" + "}";
+			message.clear();
+			message.put(MESSAGE, "Please set at least 3 genres");
+			return message.toString();
 		}
 
 		List<Integer> indexValues = new ArrayList<>(index.values());
@@ -363,25 +382,19 @@ public class RoomServiceImpl implements RoomService {
 	@Override
 	public String getRoomUsers(String roomId) {
 		log.info("Get all users in a room");
-		StringBuilder stringBuilder = new StringBuilder();
 		if (roomUserService == null)
 			return "";
 
 		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
+		JSONArray users = new JSONArray();
 
-		stringBuilder.append("[");
 		for (RoomUser roomUser : roomUsers) {
-			stringBuilder.append("{");
-			stringBuilder.append(String.format("\"user%d\":\"%s\"", roomUsers.indexOf(roomUser), roomUser.getUserNickname()));
-			stringBuilder.append("}");
-			if (roomUsers.indexOf(roomUser) == roomUsers.size() -1)
-				continue;
-
-			stringBuilder.append(",");
+			JSONObject user = new JSONObject();
+			user.put(String.format("user%d", roomUsers.indexOf(roomUser)), roomUser.getUserNickname());
+			users.put(user);
 		}
-		stringBuilder.append("]");
 
-		return stringBuilder.toString();
+		return users.toString();
 	}
 
 	@Override

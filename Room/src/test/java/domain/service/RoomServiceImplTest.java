@@ -9,6 +9,7 @@ import javax.persistence.PersistenceContext;
 
 import domain.model.RoomUser;
 import domain.model.Singleton;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -279,16 +280,19 @@ class RoomServiceImplTest {
         Set<Integer> keySet = hashMap.keySet();
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
-        String expectedString = "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
+        JSONObject message = new JSONObject();
+        message.put("message", String.format("No data for room %s", roomId));
 
-        assertEquals(expectedString, roomServiceImpl.getMovieWithMostVotes(roomId));
+        assertEquals(message.toString(), roomServiceImpl.getMovieWithMostVotes(roomId));
 
         Singleton singleton = Singleton.getInstance();
         Map<String, JSONObject> singletonHashMap = new HashMap<>();
         singletonHashMap.put(roomId, initFakeUserInfo());
         singleton.setHashMap(singletonHashMap);
 
-        assertEquals("No movie", roomServiceImpl.getMovieWithMostVotes(roomId));
+        message.clear();
+        message.put("error", "No movie");
+        assertEquals(message.toString(), roomServiceImpl.getMovieWithMostVotes(roomId));
     }
 
     @Test
@@ -298,9 +302,10 @@ class RoomServiceImplTest {
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
         String token = UUID.randomUUID().toString().substring(24);
-        String expectedString = "\"error\":\"Please set some preferences for this room\"";
+        JSONObject message = new JSONObject();
+        message.put("error", "Please set some preferences for this room");
 
-        assertEquals(expectedString, roomServiceImpl.getMovies(roomId, token));
+        assertEquals(message.toString(), roomServiceImpl.getMovies(roomId, token));
 
         Room room1 = new Room();
         String id = UUID.randomUUID().toString().substring(24);
@@ -309,8 +314,9 @@ class RoomServiceImplTest {
         room1.setUserPreferences("878,18");
         em.persist(room1);
 
-        String secondExpectedString = "{" + "\"message\":\"Please set at least 3 genres\"" + "}";
-        assertEquals(secondExpectedString, roomServiceImpl.getMovies(id, token));
+        message.clear();
+        message.put("message", "Please set at least 3 genres");
+        assertEquals(message.toString(), roomServiceImpl.getMovies(id, token));
 
         Room room2 = new Room();
         String newId = UUID.randomUUID().toString().substring(24);
@@ -319,8 +325,8 @@ class RoomServiceImplTest {
         room2.setUserPreferences("878,18,54,20");
         em.persist(room2);
 
-        String thirdExpectedString = "[]";
-        assertEquals(thirdExpectedString, roomServiceImpl.getMovies(newId, token));
+        JSONArray jsonArray = new JSONArray();
+        assertEquals(jsonArray.toString(), roomServiceImpl.getMovies(newId, token));
 
         Room room3 = new Room();
         String thirdId = UUID.randomUUID().toString().substring(24);
@@ -329,8 +335,9 @@ class RoomServiceImplTest {
         room3.setUserPreferences("preferences");
         em.persist(room3);
 
-        String fourthExpectedString = "\"error\":\"Please set some preferences for this room\"";
-        assertEquals(fourthExpectedString, roomServiceImpl.getMovies(thirdId, token));
+        message.clear();
+        message.put("error", "Please set some preferences for this room");
+        assertEquals(message.toString(), roomServiceImpl.getMovies(thirdId, token));
 
         Room room4 = new Room();
         String fourthId = UUID.randomUUID().toString().substring(24);
@@ -339,8 +346,7 @@ class RoomServiceImplTest {
         room4.setUserPreferences("10,10,1054,35,16,10");
         em.persist(room4);
 
-        String fifthExpectedString = "[]";
-        assertEquals(fifthExpectedString, roomServiceImpl.getMovies(fourthId, token));
+        assertEquals(jsonArray.toString(), roomServiceImpl.getMovies(fourthId, token));
 
         Room room5 = new Room();
         String fifthId = UUID.randomUUID().toString().substring(24);
