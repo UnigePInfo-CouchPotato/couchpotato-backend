@@ -77,7 +77,7 @@ class RoomUserServiceImplTest {
         initDataStore();
         List<RoomUser> roomUsers = roomUserServiceImpl.getAll();
         String roomId = roomUsers.get(0).getRoomId();
-        RoomUser roomUser = roomUserServiceImpl.get(roomId, "Test administrator");
+        RoomUser roomUser = roomUserServiceImpl.get(roomId, "{}");
 
         assertEquals(roomId, roomUser.getRoomId());
         assertEquals(roomUser.getUserNickname(), roomUser.getUserNickname());
@@ -85,7 +85,7 @@ class RoomUserServiceImplTest {
 
     private List<RoomUser> getRoomUsers() {
         List<RoomUser> roomUsers = new ArrayList<>();
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 5; i++) {
             roomUsers.add(getRandomRoomUser());
         }
         return roomUsers;

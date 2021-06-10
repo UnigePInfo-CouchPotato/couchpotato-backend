@@ -366,7 +366,7 @@ class RoomServiceImplTest {
 
     private List<Room> getRooms() {
         List<Room> rooms = new ArrayList<>();
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 5; i++) {
             rooms.add(getRandomRoom());
         }
         return rooms;

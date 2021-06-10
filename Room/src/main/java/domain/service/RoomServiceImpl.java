@@ -193,14 +193,12 @@ public class RoomServiceImpl implements RoomService {
     	log.info("Delete a room");
     	//Delete room
     	Room room = get(roomId);
-		if (room != null) {
-			em.remove(room);
+		em.remove(room);
 
-			//Delete all roomUser records associated
-			if (roomUserService != null) {
-				List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
-				roomUsers.forEach(roomUser -> em.remove(roomUser));
-			}
+		//Delete all roomUser records associated
+		if (roomUserService != null) {
+			List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
+			roomUsers.forEach(roomUser -> em.remove(roomUser));
 		}
 	}
 

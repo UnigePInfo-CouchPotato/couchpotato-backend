@@ -7,6 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import domain.model.Room;
 import domain.model.RoomUser;
+import io.restassured.http.ContentType;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.json.JSONArray;
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.BeforeAll;
 
 import io.restassured.RestAssured;
 
-import java.util.LinkedHashMap;
 import java.util.UUID;
 
 class RoomRestServiceIT {
@@ -86,7 +86,7 @@ class RoomRestServiceIT {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body(containsString("Test administrator"));
+                .body(containsString("{}"));
     }
 
     @Test
@@ -99,7 +99,7 @@ class RoomRestServiceIT {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.isRoomAdmin", equalTo(false));
+                .body("data.isRoomAdmin", equalTo(true));
     }
 
     @Test
@@ -157,6 +157,16 @@ class RoomRestServiceIT {
                 .body(containsString("Unauthorized"));
 
         given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
+                .queryParam("roomId", "Fgf2NLjhh9mx")
+                .when()
+                .get("/end-vote")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("message", equalTo(String.format("Voting period of room %s has been ended successfully", "Fgf2NLjhh9mx")));
+
+        given()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
                 .when()
                 .get("/end-vote")
@@ -179,8 +189,18 @@ class RoomRestServiceIT {
                 .body(containsString("Unauthorized"));
 
         given()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
                 .queryParam("roomId", "Fgf2NLjhh9mx")
+                .when()
+                .get("/end-join")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("message", equalTo(String.format("Join period of room %s has been ended successfully", "Fgf2NLjhh9mx")));
+
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+                .queryParam("roomId", "JC3Tzrx2c1nx")
                 .when()
                 .get("/end-join")
                 .then()
@@ -228,38 +248,97 @@ class RoomRestServiceIT {
     void testCloseValidRoom() {
         given()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+                .queryParam("roomId", "WN5sgnxYD8tC")
+                .when()
+                .get("/close")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body("error", equalTo(String.format("Unauthorized to close the room %s", "WN5sgnxYD8tC")));
+
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
                 .queryParam("roomId", "Fgf2NLjhh9mx")
                 .when()
                 .get("/close")
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_UNAUTHORIZED)
-                .body(containsString("Unauthorized"));
+                .statusCode(HttpStatus.SC_CONFLICT)
+                .body("error", equalTo(String.format("Room %s is already closed", "Fgf2NLjhh9mx")));
+
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
+                .queryParam("roomId", "7b07c2qj7lvc")
+                .when()
+                .get("/close")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("message", equalTo(String.format("Room %s has been closed successfully", "7b07c2qj7lvc")));
     }
 
     @Test
     void testJoinRoom() {
         given()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
-                .queryParam("roomId", "7b07c2qj7lvc")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
+                .queryParam("roomId", "WN5sgnxYD8tC")
                 .when()
                 .get("/join")
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_UNAUTHORIZED)
-                .body(containsString("Unauthorized"));
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("message", equalTo(String.format("You have joined the room %s successfully", "WN5sgnxYD8tC")));
+
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
+                .queryParam("roomId", "Fgf2NLjhh9mx")
+                .when()
+                .get("/join")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_CONFLICT)
+                .body("error", equalTo(String.format("Join period has been ended for room %s", "Fgf2NLjhh9mx")));
     }
 
     @Test
     void testVote() {
         JSONObject requestBody = new JSONObject();
-        requestBody.put("roomId", "WN5sgnxYD8tC");
-        requestBody.put("choice", new LinkedHashMap<>());
+        String str = "{\r\n" +
+                    "\"roomId\": \"WN5sgnxYD8tC\",\r\n" +
+                    "\"choice\": {}\r\n" +
+                    "}";
+
+        String str2 = "{\r\n" +
+                "\"roomId\": \"Fgf2NLjhh9mx\",\r\n" +
+                "\"choice\": {}\r\n" +
+                "}";
+
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
+                .queryParam("roomId", "Fgf2NLjhh9mx")
+                .when()
+                .get("/end-vote")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("message", equalTo(String.format("Voting period of room %s has been ended successfully", "Fgf2NLjhh9mx")));
 
         given()
                 .header("Content-type", "application/json")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
-                .and()
+                .contentType(ContentType.JSON)
+                .body(str2)
+                .when()
+                .post("/vote")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_CONFLICT)
+                .body("error", equalTo(String.format("Voting is no more allowed for room %s", "Fgf2NLjhh9mx")));
+
+        given()
+                .header("Content-type", "application/json")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+                .contentType(ContentType.JSON)
                 .body(requestBody)
                 .when()
                 .post("/vote")
@@ -267,6 +346,18 @@ class RoomRestServiceIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body("error", equalTo("Invalid parameters. Please check your request"));
+
+        given()
+                .header("Content-type", "application/json")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+                .contentType(ContentType.JSON)
+                .body(str)
+                .when()
+                .post("/vote")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_UNAUTHORIZED)
+                .body(containsString("Unauthorized"));
     }
 
     @Test
@@ -291,8 +382,8 @@ class RoomRestServiceIT {
                 .get("/results")
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_UNAUTHORIZED)
-                .body(containsString("Unauthorized"));
+                .statusCode(HttpStatus.SC_OK)
+                .body(containsString(""));
     }
 
     @Test
@@ -306,7 +397,6 @@ class RoomRestServiceIT {
                         .extract()
                         .as(RoomUser[].class);
 
-        assertThat(roomUsers.length, equalTo(25));
         assertThat(roomUsers[0].getRoomId(), equalTo("7b07c2qj7lvc"));
         assertThat(roomUsers[7].getRoomId(), equalTo("JC3Tzrx2c1nx"));
         assertThat(roomUsers[12].getRoomId(), equalTo("WN5sgnxYD8tC"));
