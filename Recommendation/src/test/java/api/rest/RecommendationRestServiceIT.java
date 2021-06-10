@@ -47,19 +47,6 @@ class RecommendationRestServiceIT {
             .contentType(ContentType.JSON);
     }
 
-/*
-    @Test
-    void testResponseId() {
-
-        given()
-                .pathParam("idGenres","Patate")
-                .when()
-                .get("/selectGenres/{idGenres}")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .contentType(ContentType.JSON);
-    }*/
-
 
     @Test
     void testResponseLength() {
@@ -81,8 +68,9 @@ class RecommendationRestServiceIT {
         when()
                 .get("/detail/{details}")
                 .then()
-                //.statusCode(HttpStatus.SC_OK)
+                .statusCode(HttpStatus.SC_OK)
                 .body("original_title",equalTo("The Poseidon Adventure"));
     }
+
 
 }
