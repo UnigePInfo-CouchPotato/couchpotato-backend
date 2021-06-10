@@ -1,5 +1,7 @@
 package domain.service;
 
+import org.json.JSONObject;
+
 import io.restassured.RestAssured;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.response.Response;
@@ -39,6 +41,25 @@ class RecommendationServiceImplTest {
 
         assertTrue(recommendationServiceImpl.isInteger(integer));
         assertFalse(recommendationServiceImpl.isInteger(string));
+
+    }
+
+    @Test
+    void testErrorSelectGenres() {
+        String idGenres = "Chatton";
+        String response = recommendationServiceImpl.getAllFilmSelected(idGenres).toString();
+
+        String ERROR = "error";
+        String SUCCESS = "success";
+        String MALFORMED_REQUEST = "Malformed request";
+
+        JSONObject errorMessage = new JSONObject();
+        errorMessage.put(SUCCESS, false);
+        errorMessage.put(ERROR, MALFORMED_REQUEST);
+
+        assertEquals(errorMessage.toString(),response);
+
+
     }
 
 }
