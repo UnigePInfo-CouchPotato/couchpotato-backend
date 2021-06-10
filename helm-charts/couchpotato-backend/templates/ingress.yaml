@@ -1,71 +1,93 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
+  name: {{ include "couchpotato.fullname" . }}.ingress-room-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "couchpotato.labels" . | nindent 4 }}
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /users/$2
     cert-manager.io/issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: public
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://localhost:4200"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,Access-Control-Allow-Origin"
+    nginx.ingress.kubernetes.io/cors-expose-headers: "Content-Length,Content-Range"
+    nginx.ingress.kubernetes.io/rewrite-target: /rooms/$2
     nginx.ingress.kubernetes.io/auth-response-headers: Authorization
     nginx.ingress.kubernetes.io/auth-url: "https://$host/oauth2/auth"
     nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"
     nginx.ingress.kubernetes.io/configuration-snippet: |
-      auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
-      access_by_lua_block {
-        if ngx.var.name_upstream_1 ~= "" then
-          ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
-        end
-      }
-  name: {{ include "couchpotato.fullname" . }}.ingress-api-user-management
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "couchpotato.labels" . | nindent 4 }}
-    {{- include "couchpotato.labels" . | nindent 4 }}.ingress
+       #add_header Access-Control-Allow-Origin $http_origin always;
+       auth_request_set $user   $upstream_http_x_auth_request_user;
+       auth_request_set $email  $upstream_http_x_auth_request_email;
+       proxy_set_header X-User  $user;
+       proxy_set_header X-Email $email;
+       auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
+       access_by_lua_block {
+         if ngx.var.name_upstream_1 ~= "" then
+           ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+         end
+       }
 spec:
   tls:
   - hosts:
-    - {{ .Values.ingress.apiEndpoint }}
+    - pinfo2.unige.ch
     secretName: couchpotato-ingress-tls
   rules:
-  - host: {{ .Values.ingress.apiEndpoint }}
+  - host: pinfo2.unige.ch
     http:
       paths:
-      - path: /users(/|$)(.*)
+      - path: /api/v1/rooms(/|$)(.*)
         backend:
-          serviceName: {{ include "couchpotato.fullname" . }}-usermanagement-service
+          serviceName: {{ include "couchpotato.fullname" . }}-room-service
           servicePort: 28080
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
+  name: {{ include "couchpotato.fullname" . }}.ingress-recommendation-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "couchpotato.labels" . | nindent 4 }}
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /rooms/$2
     cert-manager.io/issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: public
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://localhost:4200"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,Access-Control-Allow-Origin"
+    nginx.ingress.kubernetes.io/cors-expose-headers: "Content-Length,Content-Range"
+    nginx.ingress.kubernetes.io/rewrite-target: /recommendation/$2
     nginx.ingress.kubernetes.io/auth-response-headers: Authorization
     nginx.ingress.kubernetes.io/auth-url: "https://$host/oauth2/auth"
     nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"
     nginx.ingress.kubernetes.io/configuration-snippet: |
-      auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
-      access_by_lua_block {
-        if ngx.var.name_upstream_1 ~= "" then
-          ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
-        end
-      }
-  name: {{ include "couchpotato.fullname" . }}.ingress-api-rooms
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "couchpotato.labels" . | nindent 4 }}
-    {{- include "couchpotato.labels" . | nindent 4 }}.ingress
+       #add_header Access-Control-Allow-Origin $http_origin always;
+       auth_request_set $user   $upstream_http_x_auth_request_user;
+       auth_request_set $email  $upstream_http_x_auth_request_email;
+       proxy_set_header X-User  $user;
+       proxy_set_header X-Email $email;
+       auth_request_set $name_upstream_1 $upstream_cookie__oauth2_proxy_1;
+       access_by_lua_block {
+         if ngx.var.name_upstream_1 ~= "" then
+           ngx.header["Set-Cookie"] = "_oauth2_proxy_1=" .. ngx.var.name_upstream_1 .. ngx.var.auth_cookie:match("(; .*)")
+         end
+       }
 spec:
   tls:
   - hosts:
-    - {{ .Values.ingress.apiEndpoint }}
+    - pinfo2.unige.ch
     secretName: couchpotato-ingress-tls
   rules:
-  - host: {{ .Values.ingress.apiEndpoint }}
+  - host: pinfo2.unige.ch
     http:
       paths:
-      - path: /rooms(/|$)(.*)
+      - path: /api/v1/recommendation(/|$)(.*)
         backend:
-          serviceName: {{ include "couchpotato.fullname" . }}-room-service
+          serviceName: {{ include "couchpotato.fullname" . }}-recommendation-service
           servicePort: 28080
 ---
 apiVersion: networking.k8s.io/v1beta1
@@ -74,7 +96,7 @@ metadata:
   annotations:
     cert-manager.io/issuer: "letsencrypt-prod"
   name: {{ include "couchpotato.fullname" . }}.ingress-static
-  namespace: {{ .Release.Namespace }} 
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "couchpotato.labels" . | nindent 4 }}
     {{- include "couchpotato.labels" . | nindent 4 }}.ingress
@@ -90,25 +112,22 @@ spec:
       - path: /
         backend:
           serviceName: {{ include "couchpotato.fullname" . }}-web-ui
-          servicePort: 80          
----  
+          servicePort: 80
+---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  annotations:
-    cert-manager.io/issuer: "letsencrypt-prod"
   name: oauth2-proxy
   namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/ingress.class: "public" 
 spec:
-  tls:
-  - hosts:
-    - {{ .Values.ingress.apiEndpoint }}
-    secretName: couchpotato-ingress-tls
   rules:
-  - host: {{ .Values.ingress.apiEndpoint }}
+  - host: {{ .Values.ingress.clientEndpoint }}
     http:
       paths:
         - backend:
             serviceName: oauth2-proxy
             servicePort: 4180
           path: /oauth2
+

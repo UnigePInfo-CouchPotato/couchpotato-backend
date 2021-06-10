@@ -8,12 +8,5 @@ appVersion: 1.0.0
 dependencies:
   - name: postgresql
     version: 7.7.2
-    repository: https://kubernetes-charts.storage.googleapis.com
-    alias: usermanagement-database
-  - name: nginx-ingress 
-    version: 1.27.0
-    repository: https://kubernetes-charts.storage.googleapis.com
-  - name: postgresql
-    version: 7.7.2
-    repository: https://kubernetes-charts.storage.googleapis.com
+    repository: https://charts.helm.sh/stable
     alias: room-database

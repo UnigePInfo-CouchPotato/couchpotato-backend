@@ -24,38 +24,37 @@ spec:
           name: oauth2-proxy
           args:
             - --provider=oidc
-            - --upstream=https://{{ .Values.ingress.clientEndpoint }}/
+            - --upstream=https://pinfo2.unige.ch/
             - --http-address=0.0.0.0:4180
             - --cookie-secure=true
-            - --redirect-url=https://{{ .Values.ingress.apiEndpoint }}/oauth2/callback
+            - --redirect-url=https://pinfo2.unige.ch/oauth2/callback
             - --pass-user-headers=true
             - --set-xauthrequest=true
+            - --pass-access-token=true
+            - --skip-jwt-bearer-tokens=true
+            - --set-authorization-header=true
             - --pass-authorization-header=true
-            - --cookie-httponly=true
+            - --cookie-secure=true
             - --skip-auth-preflight=false
             - --skip-oidc-discovery
-            - --oidc-issuer-url={{ required "Base URL of oauth server is required" .Values.oauth.baseUrl }}
-            - --login-url={{ required "Base URL of oauth server is required" .Values.oauth.baseUrl }}authorize
-            - --redeem-url={{ required "Base URL of oauth server is required" .Values.oauth.baseUrl }}oauth/token
-            - --oidc-jwks-url={{ .Values.oauth.baseUrl }}.well-known/jwks.json
+            - --oidc-issuer-url=https://couchpotato.eu.auth0.com/
+            - --login-url=https://couchpotato.eu.auth0.com/authorize
+            - --redeem-url=https://couchpotato.eu.auth0.com/oauth/token
+            - --oidc-jwks-url=https://couchpotato.eu.auth0.com/.well-known/jwks.json
             - --email-domain=*
-            - --cookie-secret=r9yE06MfOPHcaOuao0-72g==
+            - --skip-auth-strip-headers=false
+            - --pass-basic-auth=false
+ 
+              #- --show-debug-on-error=true
+
+              #- --cookie-domain=pinfo2.unige.ch
           env:
             - name: OAUTH2_PROXY_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  key:  OAUTH2_PROXY_CLIENT_ID
-                  name: {{ .Release.Name }}-auth
+              value: {{ required "Oauth client Id is required" .Values.oauth.clientId  }}
             - name: OAUTH2_PROXY_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key:  OAUTH2_PROXY_CLIENT_SECRET
-                  name: {{ .Release.Name }}-auth
+              value: {{ required "Oauth secret is required" .Values.oauth.secret }}
             - name: OAUTH2_PROXY_COOKIE_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key:  OAUTH2_PROXY_COOKIE_SECRET
-                  name: {{ .Release.Name }}-auth
+              value: aO8xeed8dTEZu1g5kLoczg== 
 ---
 apiVersion: v1
 kind: Service

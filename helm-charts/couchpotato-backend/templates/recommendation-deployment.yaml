@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "couchpotato.fullname" . }}.usermanagement-service
+  name: {{ include "couchpotato.fullname" . }}.recommendation-service
   namespace: {{ .Release.Namespace }} 
   labels:
     {{- include "couchpotato.labels" . | nindent 4 }}
-    {{- include "couchpotato.labels" . | nindent 4 }}.usermanagement-service
+    {{- include "couchpotato.labels" . | nindent 4 }}.recommendation-service
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ include "couchpotato.fullname" . }}.usermanagement-service
+        app: {{ include "couchpotato.fullname" . }}.recommendation-service
         {{- include "couchpotato.selectorLabels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
@@ -24,31 +24,19 @@ spec:
       serviceAccountName: {{ include "couchpotato.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      initContainers:
-         - name: check-db-ready
-           image: postgres:12.1-alpine
-           command: ['sh', '-c', 
-             'until pg_isready -h {{ .Release.Name }}-usermanagement-database -p 5432; 
-             do echo waiting for database; sleep 2; done;']                   
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: {{ .Values.image.repository }}usermanagement-service:{{ .Values.image.tag }}
+          image: {{ .Values.image.repository }}recommendation-service:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: THORNTAIL_KAFKA_DASH_CONFIGURATION_HOST
               value: "{{ .Release.Name }}-kafka"
             - name: THORNTAIL_KAFKA_DASH_CONFIGURATION_POST
               value: "9092"
-            - name: THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_CONNECTION_DASH_URL
-              value: "jdbc:postgresql://{{ .Release.Name }}-usermanagement-database:5432/usermanagement"
-            - name: THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_DRIVER_DASH_NAME
-              value: "postgresql"   
-            - name: THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_USER_DASH_NAME
-              value: "usermanagement"
-            - name: THORNTAIL_DATASOURCES_DATA_DASH_SOURCES_USERMANAGEMENTDS_PASSWORD
-              value: "usermanagement"              
+            - name: THORNTAIL_PORT_OFFSET
+              value: "0" 
           ports:
             - name: http
               containerPort: 28080

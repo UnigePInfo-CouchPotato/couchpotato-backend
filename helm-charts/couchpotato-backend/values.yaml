@@ -10,30 +10,9 @@ image:
   pullPolicy: Always
 
 oauth:
-  OAUTH2_PROXY_COOKIE_SECRET: OAUTH2_PROXY_COOKIE_SECRET
-  OAUTH2_PROXY_CLIENT_ID: OAUTH2_PROXY_CLIENT_ID
-  OAUTH2_PROXY_CLIENT_SECRET: OAUTH2_PROXY_CLIENT_SECRET
-  baseUrl: couchpotato.eu.auth0.com/
-
-usermanagement-database:
-  driver_name: org.postgresql
-  persistence:
-     enabled: false
-  postgresqlUsername: usermanagement
-  postgresqlPassword: usermanagement
-  postgresUser: usermanagement
-  postgresDatabase: usermanagement
-  postgresqlDatabase: usermanagement
-  global:
-      persistence:
-         enabled: false
-      postgresqlDatabase: usermanagement
-  initdbScriptsConfigMap:
-    usermanagement-scripts
-  livenessProbe:
-     initialDelaySeconds: 120
-  readinessProbe:
-     initialDelaySeconds: 100
+    baseUrl: 
+    clientId:
+    secret: 
 
 room-database:
   driver_name: org.postgresql
