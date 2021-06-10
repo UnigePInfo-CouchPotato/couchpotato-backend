@@ -1,4 +1,4 @@
-package api;
+package api.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import domain.model.Room;
@@ -33,6 +33,7 @@ public class RoomRestService {
     /*CONSTANTS*/
     private static final String DATA = "\"data\":";
     private static final String BEARER = "Bearer ";
+    private static final String NICKNAME = "nickname";
     private static final String MODE_PROPERTY = "MODE";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String AUTHORIZATION = "Authorization";
@@ -78,7 +79,7 @@ public class RoomRestService {
         }
 
         JSONObject userInfo = roomService.getUserInfo(bearerToken);
-        String userNickname = userInfo.getString("nickname");
+        String userNickname = userInfo.getString(NICKNAME);
         /*Check if user is in this specific room
         If "notJoiningRoom" is false, do not check if user is in the room*/
         if (notJoiningRoom && !roomUserService.exists(roomId, userNickname)) {
@@ -90,7 +91,7 @@ public class RoomRestService {
         return Response.noContent().build();
     }
 
-    private Response handleTestMode(String roomId, HttpHeaders headers) {
+    private Response handleParamsAndTests(String roomId, HttpHeaders headers, boolean notJoiningRoom) {
         final String property = System.getProperty(MODE_PROPERTY);
         if (Objects.equals(property, "TEST")) {
             Response response = handleRoomIdQueryParam(roomId);
@@ -99,7 +100,7 @@ public class RoomRestService {
         }
         else {
             List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-            Response response = handleParams(roomId, authorization, true);
+            Response response = handleParams(roomId, authorization, notJoiningRoom);
             if (response.getStatusInfo() != Response.Status.NO_CONTENT)
                 return response;
         }
@@ -154,7 +155,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a specific room using its id")
     public Response get(@PathParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleTestMode(roomId, headers);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -166,7 +167,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if a specific room exists")
     public Response exists(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleTestMode(roomId, headers);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -179,8 +180,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get all users in a specific room")
     public Response getRoomUsers(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -192,11 +192,12 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if user is admin of a specific room")
     public Response isRoomAdmin(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
-        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+        Response response = handleParamsAndTests(roomId, headers, true);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT) {
             return response;
+        }
 
+        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
         String bearerToken = authorization.get(0).replace(BEARER, "");
 
         String message = "{" + DATA + "{" + "\"isRoomAdmin\":" + roomService.isRoomAdmin(roomId, bearerToken) + "}" + "}";
@@ -208,8 +209,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the admin of a specific room")
     public Response getRoomAdmin(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -223,14 +223,16 @@ public class RoomRestService {
     @ApiOperation(value = "Create a room")
     public Response createRoom(@Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        if (authorization == null) {
+        if (headers.getHeaderString(AUTHORIZATION) == null)
             return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
-        }
+
+        if (authorization == null)
+            return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
 
         String bearerToken = authorization.get(0).replace(BEARER, "");
 
         //Check if token is invalid
-        if (roomService.isTokenInvalid(bearerToken)) {
+        if (!Objects.equals(System.getProperty("MODE"), "TEST") && roomService.isTokenInvalid(bearerToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
         }
 
@@ -245,7 +247,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete a room")
     public Response deleteRoom(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleTestMode(roomId, headers);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -261,7 +263,7 @@ public class RoomRestService {
     @ApiOperation(value = "End voting period")
     public Response endVotingPeriod(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -285,7 +287,7 @@ public class RoomRestService {
     @ApiOperation(value = "End join period")
     public Response endJoinPeriod(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -309,7 +311,7 @@ public class RoomRestService {
     @ApiOperation(value = "Close a room")
     public Response closeRoom(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -338,7 +340,7 @@ public class RoomRestService {
     @ApiOperation(value = "Join a room")
     public Response joinRoom(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, false);
+        Response response = handleParamsAndTests(roomId, headers, false);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -371,7 +373,7 @@ public class RoomRestService {
         String roomId = (String) body.get("roomId");
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
 
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -406,7 +408,11 @@ public class RoomRestService {
         JSONArray jsonArray = new JSONArray("[" + jsonObject + "]");
         JSONObject userInfo = roomService.getUserInfo(bearerToken);
 
-        roomUserService.setUserVotes(roomId, userInfo.getString("nickname"), jsonArray);
+        if (!userInfo.keySet().contains(NICKNAME)) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
+        }
+
+        roomUserService.setUserVotes(roomId, userInfo.getString(NICKNAME), jsonArray);
         String successMessage = "{" + "\"message\":\"Your votes have been saved successfully\"" + "}";
         return Response.status(Response.Status.OK).entity(successMessage).build();
     }
@@ -432,7 +438,7 @@ public class RoomRestService {
     @ApiOperation(value = "Get the movies according to the users preferences")
     public Response getMovies(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParamsAndTests(roomId, headers, true);
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 

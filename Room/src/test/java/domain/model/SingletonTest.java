@@ -22,11 +22,6 @@ class SingletonTest {
         Singleton singleton = Singleton.getInstance();
         Singleton secondSingleton = Singleton.getInstance();
 
-        assertEquals(new HashMap<>(), singleton.getHashMap());
-        assertEquals(new HashMap<>(), secondSingleton.getHashMap());
-        assertEquals(0, singleton.getHashMap().size());
-        assertEquals(0, secondSingleton.getHashMap().size());
-
         Map<String, JSONObject> singletonHashMap = new HashMap<>();
         singletonHashMap.put(roomId, initFakeUserInfo());
         singleton.setHashMap(singletonHashMap);

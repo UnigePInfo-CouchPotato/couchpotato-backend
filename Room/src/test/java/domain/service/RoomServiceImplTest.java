@@ -8,6 +8,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import domain.model.RoomUser;
+import domain.model.Singleton;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,9 +45,11 @@ class RoomServiceImplTest {
     void testIsInteger() {
         Integer integer = 5;
         String string = "Hello!";
+        JSONObject jsonObject = new JSONObject();
 
         assertTrue(roomServiceImpl.isInteger(integer));
         assertFalse(roomServiceImpl.isInteger(string));
+        assertFalse(roomServiceImpl.isInteger(jsonObject));
     }
 
     @Test
@@ -245,6 +248,29 @@ class RoomServiceImplTest {
         assertNotNull(rooms);
         assertEquals(rooms, roomServiceImpl.getAll());
         assertEquals(rooms.size(), roomServiceImpl.getAll().size());
+        assertEquals(rooms.size(), roomServiceImpl.count());
+    }
+
+    @Test
+    void testCreateRoom() {
+        String token = UUID.randomUUID().toString().substring(24);
+        String roomId = roomServiceImpl.createRoom(token);
+
+        assertTrue(roomServiceImpl.exists(roomId));
+    }
+
+    @Test
+    void testJoinRoom() {
+        HashMap<Integer, List<Room>> hashMap = initDataStore();
+        Set<Integer> keySet = hashMap.keySet();
+        List<Room> rooms = hashMap.get(keySet.iterator().next());
+        String roomId = rooms.get(0).getRoomId();
+        String token = UUID.randomUUID().toString().substring(24);
+        String nickname = "Admin";
+        roomServiceImpl.joinRoom(roomId, token);
+        roomUserServiceImpl.create(roomId, nickname);
+
+        assertTrue(roomUserServiceImpl.exists(roomId, nickname));
     }
 
     @Test
@@ -256,6 +282,75 @@ class RoomServiceImplTest {
         String expectedString = "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
 
         assertEquals(expectedString, roomServiceImpl.getMovieWithMostVotes(roomId));
+
+        Singleton singleton = Singleton.getInstance();
+        Map<String, JSONObject> singletonHashMap = new HashMap<>();
+        singletonHashMap.put(roomId, initFakeUserInfo());
+        singleton.setHashMap(singletonHashMap);
+
+        assertEquals("No movie", roomServiceImpl.getMovieWithMostVotes(roomId));
+    }
+
+    @Test
+    void testGetMovies() {
+        HashMap<Integer, List<Room>> hashMap = initDataStore();
+        Set<Integer> keySet = hashMap.keySet();
+        List<Room> rooms = hashMap.get(keySet.iterator().next());
+        String roomId = rooms.get(0).getRoomId();
+        String token = UUID.randomUUID().toString().substring(24);
+        String expectedString = "\"error\":\"Please set some preferences for this room\"";
+
+        assertEquals(expectedString, roomServiceImpl.getMovies(roomId, token));
+
+        Room room1 = new Room();
+        String id = UUID.randomUUID().toString().substring(24);
+        room1.setRoomId(id);
+        room1.setRoomAdmin("Test administrator");
+        room1.setUserPreferences("878,18");
+        em.persist(room1);
+
+        String secondExpectedString = "{" + "\"message\":\"Please set at least 3 genres\"" + "}";
+        assertEquals(secondExpectedString, roomServiceImpl.getMovies(id, token));
+
+        Room room2 = new Room();
+        String newId = UUID.randomUUID().toString().substring(24);
+        room2.setRoomId(newId);
+        room2.setRoomAdmin("Test administrator");
+        room2.setUserPreferences("878,18,54,20");
+        em.persist(room2);
+
+        String thirdExpectedString = "[]";
+        assertEquals(thirdExpectedString, roomServiceImpl.getMovies(newId, token));
+
+        Room room3 = new Room();
+        String thirdId = UUID.randomUUID().toString().substring(24);
+        room3.setRoomId(thirdId);
+        room3.setRoomAdmin("Test administrator");
+        room3.setUserPreferences("preferences");
+        em.persist(room3);
+
+        String fourthExpectedString = "\"error\":\"Please set some preferences for this room\"";
+        assertEquals(fourthExpectedString, roomServiceImpl.getMovies(thirdId, token));
+
+        Room room4 = new Room();
+        String fourthId = UUID.randomUUID().toString().substring(24);
+        room4.setRoomId(fourthId);
+        room4.setRoomAdmin("Test administrator");
+        room4.setUserPreferences("10,10,1054,35,16,10");
+        em.persist(room4);
+
+        String fifthExpectedString = "[]";
+        assertEquals(fifthExpectedString, roomServiceImpl.getMovies(fourthId, token));
+
+        Room room5 = new Room();
+        String fifthId = UUID.randomUUID().toString().substring(24);
+        room5.setRoomId(fifthId);
+        room5.setRoomAdmin("Test administrator");
+        room5.setMovies("Movies");
+        room5.setUserPreferences("10,10,1054,35,16,10");
+        em.persist(room5);
+
+        assertEquals("Movies", roomServiceImpl.getMovies(fifthId, token));
     }
 
     @Test
@@ -271,7 +366,7 @@ class RoomServiceImplTest {
 
     private List<Room> getRooms() {
         List<Room> rooms = new ArrayList<>();
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 5; i++) {
             rooms.add(getRandomRoom());
         }
         return rooms;

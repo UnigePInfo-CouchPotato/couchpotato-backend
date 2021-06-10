@@ -102,6 +102,7 @@
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-client</artifactId>
             <version>3.9.1.Final</version>
+            <scope>test</scope>
         </dependency>
 
 

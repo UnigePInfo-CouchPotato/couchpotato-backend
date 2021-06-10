@@ -56,18 +56,22 @@ public class RoomServiceImpl implements RoomService {
 
 	public String makeRequest(String url, String token) {
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(url);
-		Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
+		try {
+			WebTarget webTarget = client.target(url);
+			Response response = webTarget.request(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, "Bearer " + token).get();
 
-		if (response.getStatusInfo() == Response.Status.UNAUTHORIZED) {
-			return UNAUTHORIZED;
+			if (response.getStatusInfo() == Response.Status.UNAUTHORIZED) {
+				return UNAUTHORIZED;
+			}
+
+			if (response.getStatus() != 200) {
+				return "Failed : HTTP error code : " + response.getStatus();
+			}
+
+			return response.readEntity(String.class);
+		} catch (Exception e) {
+			return "[]";
 		}
-
-		if (response.getStatus() != 200) {
-			return "Failed : HTTP error code : " + response.getStatus();
-		}
-
-		return response.readEntity(String.class);
 	}
 
 	@Override
@@ -160,7 +164,9 @@ public class RoomServiceImpl implements RoomService {
 		em.persist(room);
 		em.flush();
 		String createdRoomId = room.getRoomId();
-		roomUserService.create(createdRoomId, getUserNickname(userInfo));
+		if (roomUserService != null)
+			roomUserService.create(createdRoomId, getUserNickname(userInfo));
+
 		String str = getUserPreferences(userInfo);
 		room.setUserPreferences(str);
 		return createdRoomId;
@@ -176,7 +182,9 @@ public class RoomServiceImpl implements RoomService {
 		String userPreferences = room.getUserPreferences();
 		String updatedPreferences = userPreferences + "," + newPreferences;
 		room.setUserPreferences(updatedPreferences);
-		roomUserService.create(roomId, getUserNickname(userInfo));
+
+		if (roomUserService != null)
+			roomUserService.create(roomId, getUserNickname(userInfo));
 	}
 
 	@Override
@@ -185,14 +193,12 @@ public class RoomServiceImpl implements RoomService {
     	log.info("Delete a room");
     	//Delete room
     	Room room = get(roomId);
-		if (room != null) {
-			em.remove(room);
+		em.remove(room);
 
-			//Delete all roomUser records associated
-			if (roomUserService != null) {
-				List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
-				roomUsers.forEach(roomUser -> em.remove(roomUser));
-			}
+		//Delete all roomUser records associated
+		if (roomUserService != null) {
+			List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
+			roomUsers.forEach(roomUser -> em.remove(roomUser));
 		}
 	}
 
@@ -227,6 +233,9 @@ public class RoomServiceImpl implements RoomService {
 
 		if (jsonObject == null)
 			return "{" + String.format("\"message\":\"No data for room %s\"", roomId) + "}";
+
+		if (roomUserService == null)
+			return "No movie";
 
 		List<RoomUser> roomUsers = roomUserService.getAllFromRoomId(roomId);
     	HashMap<String, Integer> index = new HashMap<>();
