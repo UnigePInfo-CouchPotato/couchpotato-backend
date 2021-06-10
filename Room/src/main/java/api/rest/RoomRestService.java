@@ -90,6 +90,12 @@ public class RoomRestService {
         }
 
         JSONObject userInfo = roomService.getUserInfo(bearerToken);
+        if (!userInfo.keySet().contains(NICKNAME)) {
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, "Management API Rate Limiting in effect.");
+            return Response.status(Response.Status.TOO_MANY_REQUESTS).entity(errorMessage.toString()).build();
+        }
+
         String userNickname = userInfo.getString(NICKNAME);
         /*Check if user is in this specific room
         If "notJoiningRoom" is false, do not check if user is in the room*/
