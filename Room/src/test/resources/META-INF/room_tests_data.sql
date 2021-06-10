@@ -8,7 +8,7 @@ INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersC
 INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( '99rxfyog0a87', 'Test administrator', '', '', FALSE, TRUE, TRUE, 0 );
 INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( '7b07c2qj7lvc', 'Test administrator', '', '', FALSE, TRUE, TRUE, 0 );
 INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( 'JC3Tzrx2c1nx', 'Test administrator', '', '', FALSE, TRUE, TRUE, 0 );
-INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( 'Fgf2NLjhh9mx', 'Test administrator', '', '', TRUE, TRUE, TRUE, 0 );
+INSERT INTO Room (roomId, roomAdmin, userPreferences, movies, roomClosed, usersCanVote, usersCanJoin, numberOfMovies) VALUES ( 'Fgf2NLjhh9mx', '', '', '', TRUE, TRUE, TRUE, 0 );
 
 
 -- -- RoomUser table
@@ -37,6 +37,6 @@ INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2N
 INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Jelly', CURRENT_TIMESTAMP, '[0, 1, 0, 1, 0]' );
 INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Bob', CURRENT_TIMESTAMP, '[6, 5, 4, 3, 2]' );
 INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Patel', CURRENT_TIMESTAMP, '[-2, -1, 0, 1, 2]' );
-INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Nickname', CURRENT_TIMESTAMP, '[10, 4, 5, 1, 3]' );
+INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', '', CURRENT_TIMESTAMP, '[10, 4, 5, 1, 3]' );
 INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Man', CURRENT_TIMESTAMP, '[0, 1, 1, 0, 0]' );
 INSERT INTO RoomUser (roomId, userNickname, creationDate, votes) VALUES ( 'Fgf2NLjhh9mx', 'Woman', CURRENT_TIMESTAMP, '[0, 0, 5, 7, 4]' );
