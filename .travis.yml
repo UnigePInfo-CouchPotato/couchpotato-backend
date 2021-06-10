@@ -16,9 +16,12 @@ jobs:
   include:
   - stage: Build
     script:
-    - git fetch origin staging 
-    - mvn clean install -Dtest=false -DfailIfNoTests=false 
+    - mvn clean install
+  - stage: Testing
+    script:
+    - mvn test
     - mvn verify
+    - mvn clean verify sonar:sonar -Pcoverage -Dsonar.projectKey=CouchpotatoBackend -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=e55a69870244294e6f44dbba5b457b0db13400d8
   - stage: Docker
     script:
     - pwd
@@ -33,8 +36,6 @@ jobs:
     - docker tag couchpotato-backend/recommendation-service faysalsaber/recommendation-service:latest
     - docker push faysalsaber/recommendation-service:latest
     - cd ..
-    - git fetch origin staging 
-    - mvn clean verify sonar:sonar -Pcoverage -Dsonar.projectKey=CouchpotatoBackend -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=e55a69870244294e6f44dbba5b457b0db13400d8
     - ssh -i ./deploy_key saberfa0@129.194.10.127 "cd couchpotato/helm-charts/test/couchpotato-backend && source exp.sh"  
 before_install:
 - openssl aes-256-cbc -K $encrypted_dfdcfd5172af_key -iv $encrypted_dfdcfd5172af_iv
