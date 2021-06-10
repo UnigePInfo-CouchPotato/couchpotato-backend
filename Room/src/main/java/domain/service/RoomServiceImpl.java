@@ -389,9 +389,7 @@ public class RoomServiceImpl implements RoomService {
 		JSONArray users = new JSONArray();
 
 		for (RoomUser roomUser : roomUsers) {
-			JSONObject user = new JSONObject();
-			user.put(String.format("user%d", roomUsers.indexOf(roomUser)), roomUser.getUserNickname());
-			users.put(user);
+			users.put(roomUser.getUserNickname());
 		}
 
 		return users.toString();
