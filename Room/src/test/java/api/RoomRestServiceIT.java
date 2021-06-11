@@ -110,7 +110,6 @@ class RoomRestServiceIT {
 
     @Test
     void testGetUsers() {
-        String userNo = "user0";
         String userNickname = "Test administrator";
         JSONObject expected = new JSONObject();
         JSONArray users = new JSONArray();
@@ -420,8 +419,8 @@ class RoomRestServiceIT {
                 .get("/final")
                 .then()
                 .assertThat()
-                .statusCode(HttpStatus.SC_UNAUTHORIZED)
-                .body(containsString("Unauthorized"));
+                .statusCode(HttpStatus.SC_OK)
+                .body(containsString(""));
     }
 
     @Test
