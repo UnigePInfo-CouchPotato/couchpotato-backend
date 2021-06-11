@@ -125,9 +125,12 @@ class RoomServiceImplTest {
     }
 
     @Test
-    void testIsTokenInvalid() {
+    void testCheckTokenValidity() {
         String token = UUID.randomUUID().toString();
-        assertTrue(roomServiceImpl.isTokenInvalid(token));
+        Map<String, JSONObject> map = roomServiceImpl.checkTokenValidity(token);
+        JSONObject info = map.get("info");
+        boolean isValid = info.getBoolean("valid");
+        assertFalse(isValid);
     }
 
     @Test
@@ -256,9 +259,7 @@ class RoomServiceImplTest {
 
     @Test
     void testCreateRoom() {
-        String token = UUID.randomUUID().toString().substring(24);
-        String roomId = roomServiceImpl.createRoom(token);
-
+        String roomId = roomServiceImpl.createRoom(initFakeUserInfo());
         assertTrue(roomServiceImpl.exists(roomId));
     }
 

@@ -4,6 +4,7 @@ import domain.model.Room;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RoomService {
 
@@ -16,11 +17,11 @@ public interface RoomService {
 	boolean canJoinRoom(String roomId);
 	boolean canVote(String roomId);
 	boolean isRoomAdmin(String roomId, String token);
-	String createRoom(String token);
+	String createRoom(JSONObject user);
 	void joinRoom(String roomId, String token);
 	void deleteRoom(String roomId);
 	boolean closeRoom(String roomId);
-	boolean isTokenInvalid(String token);
+	Map<String, JSONObject> checkTokenValidity(String token);
 	String getMovieWithMostVotes(String roomId);
 	String getMovies(String roomId, String token);
 	JSONObject getUserInfo(String token);
