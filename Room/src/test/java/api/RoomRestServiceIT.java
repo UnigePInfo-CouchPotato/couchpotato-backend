@@ -184,16 +184,6 @@ class RoomRestServiceIT {
     @Test
     void testStartVotingPeriod() {
         given()
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
-          .queryParam("roomId", "99rxfyog0a87")
-          .when()
-          .get("/start-vote")
-          .then()
-          .assertThat()
-          .statusCode(HttpStatus.SC_FORBIDDEN)
-          .body(containsString("Unauthorized"));
-
-        given()
           .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
           .queryParam("roomId", "Fgf2NLjhh9mx")
           .when()
