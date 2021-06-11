@@ -26,5 +26,6 @@ public interface RoomService {
 	JSONObject getUserInfo(String token);
 	void endJoinPeriod(String roomId);
 	void endVotingPeriod(String roomId);
+	void startVotingPeriod(String roomId);
 
 }

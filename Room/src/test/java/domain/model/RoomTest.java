@@ -13,7 +13,7 @@ class RoomTest {
         assertNull(room.getRoomId());
         assertNull(room.getRoomAdmin());
         assertFalse(room.isRoomClosed());
-        assertTrue(room.isUsersCanVote());
+        assertFalse(room.isUsersCanVote());
         assertTrue(room.isUsersCanJoin());
         assertEquals("", room.getMovies());
         assertEquals("", room.getUserPreferences());

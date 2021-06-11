@@ -24,7 +24,7 @@ public class Room {
 	@NotNull
 	private boolean roomClosed = false;
 	@NotNull
-	private boolean usersCanVote = true;
+	private boolean usersCanVote = false;
 	@NotNull
 	private boolean usersCanJoin = true;
 	@NotNull

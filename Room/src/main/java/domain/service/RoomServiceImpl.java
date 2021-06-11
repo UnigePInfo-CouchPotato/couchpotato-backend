@@ -152,6 +152,13 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
+	@Transactional
+	public void startVotingPeriod(String roomId) {
+		Room room = get(roomId);
+		room.setUsersCanVote(true);
+	}
+
+	@Override
 	public boolean isRoomAdmin(String roomId, String token) {
     	log.info("Check if user is the administrator of a room");
 		Room room = get(roomId);
