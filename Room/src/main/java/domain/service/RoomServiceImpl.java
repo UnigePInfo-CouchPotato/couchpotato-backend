@@ -152,6 +152,13 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
+	@Transactional
+	public void startVotingPeriod(String roomId) {
+		Room room = get(roomId);
+		room.setUsersCanVote(true);
+	}
+
+	@Override
 	public boolean isRoomAdmin(String roomId, String token) {
     	log.info("Check if user is the administrator of a room");
 		Room room = get(roomId);
@@ -161,19 +168,18 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	@Transactional
-	public String createRoom(String token) {
+	public String createRoom(JSONObject user) {
     	log.info("Create a room, set the administrator and add the user");
 		Room room = new Room();
-		JSONObject userInfo = getUserInfo(token);
-		room.setRoomAdmin(userInfo.toString());
+		room.setRoomAdmin(user.toString());
 		room.setRoomId(createID());
 		em.persist(room);
 		em.flush();
 		String createdRoomId = room.getRoomId();
 		if (roomUserService != null)
-			roomUserService.create(createdRoomId, getUserNickname(userInfo));
+			roomUserService.create(createdRoomId, getUserNickname(user));
 
-		String str = getUserPreferences(userInfo);
+		String str = getUserPreferences(user);
 		room.setUserPreferences(str);
 		return createdRoomId;
 	}
@@ -223,11 +229,22 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public boolean isTokenInvalid(String token) {
+	public Map<String, JSONObject> checkTokenValidity(String token) {
     	log.info("Check if the token is valid");
 		String response = makeRequest(AUTH0_URL, token);
 
-		return response.equals(UNAUTHORIZED);
+		Map<String, JSONObject> map = new HashMap<>();
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("valid", !response.equals(UNAUTHORIZED));
+
+		if (response.equals("[]") || response.equals(UNAUTHORIZED))
+			jsonObject.put("userInfo", new JSONObject());
+		else
+			jsonObject.put("userInfo", new JSONObject(response));
+
+		map.put("info", jsonObject);
+
+		return map;
 	}
 
 	@Override

@@ -40,6 +40,7 @@ public class RoomRestService {
     private static final String MODE_PROPERTY = "MODE";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String AUTHORIZATION = "Authorization";
+    private static final String[] API_ENDPOINTS = {"JOIN", "CREATE"};
 
     /*HANDLE ERROR MESSAGES*/
     private static String generateBadRequestErrorMessage() {
@@ -66,7 +67,7 @@ public class RoomRestService {
         return Response.noContent().build();
     }
 
-    private Response handleParams(String roomId, List<String> authorization, boolean notJoiningRoom) {
+    private Response handleParams(String roomId, List<String> authorization, String apiEndpoint) {
         //Check if params are valid
         if (roomId == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity(generateBadRequestErrorMessage()).build();
@@ -84,32 +85,38 @@ public class RoomRestService {
         }
 
         String bearerToken = authorization.get(0).replace(BEARER, "");
-        //Check if token is invalid
-        if (roomService.isTokenInvalid(bearerToken)) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
-        }
 
-        JSONObject userInfo = roomService.getUserInfo(bearerToken);
-        if (!userInfo.keySet().contains(NICKNAME)) {
-            JSONObject errorMessage = new JSONObject();
-            errorMessage.put(ERROR, "Management API Rate Limiting in effect.");
-            return Response.status(Response.Status.TOO_MANY_REQUESTS).entity(errorMessage.toString()).build();
-        }
+        //Check if token is invalid only if user is trying to create or join
+        if (Arrays.asList(API_ENDPOINTS).contains(apiEndpoint)) {
+            Map<String, JSONObject> map = roomService.checkTokenValidity(bearerToken);
+            JSONObject info = map.get("info");
+            boolean isValid = info.getBoolean("valid");
+            if (!isValid)
+                return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
 
-        String userNickname = userInfo.getString(NICKNAME);
-        /*Check if user is in this specific room
-        If "notJoiningRoom" is false, do not check if user is in the room*/
-        if (notJoiningRoom && !roomUserService.exists(roomId, userNickname)) {
-            JSONObject errorMessage = new JSONObject();
-            errorMessage.put(ERROR, String.format("User %s is not in this room", userNickname));
-            return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
+            JSONObject userInfo = info.getJSONObject("userInfo");
+            if (!userInfo.keySet().contains(NICKNAME)) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put(ERROR, "Management API Rate Limiting in effect.");
+                return Response.status(Response.Status.TOO_MANY_REQUESTS).entity(errorMessage.toString()).build();
+            }
+
+            String userNickname = userInfo.getString(NICKNAME);
+            /*Check if user is in this specific room*/
+            if (!Objects.equals(apiEndpoint, "JOIN") && !roomUserService.exists(roomId, userNickname)) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put(ERROR, String.format("User %s is not in this room", userNickname));
+                return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
+            }
+
+            return Response.noContent().build();
         }
 
         //Default -> Return no content
         return Response.noContent().build();
     }
 
-    private Response handleParamsAndTests(String roomId, HttpHeaders headers, boolean notJoiningRoom) {
+    private Response handleParamsAndTests(String roomId, HttpHeaders headers, String apiEndpoint) {
         final String property = System.getProperty(MODE_PROPERTY);
         if (Objects.equals(property, "TEST")) {
             Response response = handleRoomIdQueryParam(roomId);
@@ -118,7 +125,7 @@ public class RoomRestService {
         }
         else {
             List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-            Response response = handleParams(roomId, authorization, notJoiningRoom);
+            Response response = handleParams(roomId, authorization, apiEndpoint);
             if (response.getStatusInfo() != Response.Status.NO_CONTENT)
                 return response;
         }
@@ -173,7 +180,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a specific room using its id")
     public Response get(@PathParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "GET");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -198,7 +205,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if a specific room exists")
     public Response exists(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "EXISTS");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -215,7 +222,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get all users in a specific room")
     public Response getRoomUsers(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "USERS");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -232,7 +239,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if user is admin of a specific room")
     public Response isRoomAdmin(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "IS-ROOM-ADMIN");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT) {
             return response;
         }
@@ -253,7 +260,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the admin of a specific room")
     public Response getRoomAdmin(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "ADMIN");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -282,12 +289,15 @@ public class RoomRestService {
         String bearerToken = authorization.get(0).replace(BEARER, "");
 
         //Check if token is invalid
-        if (!Objects.equals(System.getProperty("MODE"), "TEST") && roomService.isTokenInvalid(bearerToken)) {
+        Map<String, JSONObject> map = roomService.checkTokenValidity(bearerToken);
+        JSONObject info = map.get("info");
+        boolean isValid = info.getBoolean("valid");
+        if (!Objects.equals(System.getProperty("MODE"), "TEST") && !isValid) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
         }
 
         //Create a room
-        String roomId = roomService.createRoom(bearerToken);
+        String roomId = roomService.createRoom(info.getJSONObject("userInfo"));
         JSONObject successMessage = new JSONObject();
         JSONObject data = new JSONObject();
         data.put("roomId", roomId);
@@ -300,7 +310,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete a room")
     public Response deleteRoom(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "DELETE");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -317,7 +327,7 @@ public class RoomRestService {
     @ApiOperation(value = "End voting period")
     public Response endVotingPeriod(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "END-VOTE");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -338,12 +348,38 @@ public class RoomRestService {
     }
 
     @GET
+    @Path("/start-vote")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Start voting period")
+    public Response startVotingPeriod(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
+        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
+        Response response = handleParamsAndTests(roomId, headers, "START-VOTE");
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        String bearerToken = authorization.get(0).replace(BEARER, "");
+
+        //Check if user is the administrator of the room
+        if (!roomService.isRoomAdmin(roomId, bearerToken)) {
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Unauthorized to start the voting period of the room %s", roomId));
+            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage.toString()).build();
+        }
+
+        //End the voting period
+        roomService.startVotingPeriod(roomId);
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, String.format("Voting period of room %s has been started successfully", roomId));
+        return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
+    }
+
+    @GET
     @Path("/end-join")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "End join period")
     public Response endJoinPeriod(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "END-JOIN");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -368,7 +404,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Verify if within join period")
     public Response checkCanJoin(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "CAN-JOIN");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -385,7 +421,7 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Verify if within vote period")
     public Response checkCanVote(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "CAN-VOTE");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -403,7 +439,7 @@ public class RoomRestService {
     @ApiOperation(value = "Close a room")
     public Response closeRoom(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "CLOSE");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -435,7 +471,7 @@ public class RoomRestService {
     @ApiOperation(value = "Join a room")
     public Response joinRoom(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParamsAndTests(roomId, headers, false);
+        Response response = handleParamsAndTests(roomId, headers, "JOIN");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -471,7 +507,7 @@ public class RoomRestService {
         String roomId = (String) body.get("roomId");
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
 
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "VOTE");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -524,7 +560,7 @@ public class RoomRestService {
     @ApiOperation(value = "Find the movie with the most votes")
     public Response getMovieWithMostVotes(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParams(roomId, authorization, true);
+        Response response = handleParams(roomId, authorization, "FINAL");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
@@ -547,7 +583,7 @@ public class RoomRestService {
     @ApiOperation(value = "Get the movies according to the users preferences")
     public Response getMovies(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
         List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        Response response = handleParamsAndTests(roomId, headers, true);
+        Response response = handleParamsAndTests(roomId, headers, "RESULTS");
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 

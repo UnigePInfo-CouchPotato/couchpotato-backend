@@ -67,13 +67,15 @@ class RoomServiceImplTest {
     }
 
     @Test
-    void testEndVotingPeriod() {
+    void testVotingPeriod() {
         HashMap<Integer, List<Room>> hashMap = initDataStore();
         Set<Integer> keySet = hashMap.keySet();
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
         Room room = roomServiceImpl.get(roomId);
 
+        assertFalse(room.isUsersCanVote());
+        roomServiceImpl.startVotingPeriod(roomId);
         assertTrue(room.isUsersCanVote());
         roomServiceImpl.endVotingPeriod(roomId);
         assertFalse(room.isUsersCanVote());
@@ -123,9 +125,12 @@ class RoomServiceImplTest {
     }
 
     @Test
-    void testIsTokenInvalid() {
+    void testCheckTokenValidity() {
         String token = UUID.randomUUID().toString();
-        assertTrue(roomServiceImpl.isTokenInvalid(token));
+        Map<String, JSONObject> map = roomServiceImpl.checkTokenValidity(token);
+        JSONObject info = map.get("info");
+        boolean isValid = info.getBoolean("valid");
+        assertFalse(isValid);
     }
 
     @Test
@@ -213,7 +218,7 @@ class RoomServiceImplTest {
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
 
-        assertTrue(roomServiceImpl.canVote(roomId));
+        assertFalse(roomServiceImpl.canVote(roomId));
         roomServiceImpl.endVotingPeriod(roomId);
         assertFalse(roomServiceImpl.canVote(roomId));
     }
@@ -254,9 +259,7 @@ class RoomServiceImplTest {
 
     @Test
     void testCreateRoom() {
-        String token = UUID.randomUUID().toString().substring(24);
-        String roomId = roomServiceImpl.createRoom(token);
-
+        String roomId = roomServiceImpl.createRoom(initFakeUserInfo());
         assertTrue(roomServiceImpl.exists(roomId));
     }
 
