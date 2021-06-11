@@ -67,13 +67,15 @@ class RoomServiceImplTest {
     }
 
     @Test
-    void testEndVotingPeriod() {
+    void testVotingPeriod() {
         HashMap<Integer, List<Room>> hashMap = initDataStore();
         Set<Integer> keySet = hashMap.keySet();
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
         Room room = roomServiceImpl.get(roomId);
 
+        assertFalse(room.isUsersCanVote());
+        roomServiceImpl.startVotingPeriod(roomId);
         assertTrue(room.isUsersCanVote());
         roomServiceImpl.endVotingPeriod(roomId);
         assertFalse(room.isUsersCanVote());
@@ -213,7 +215,7 @@ class RoomServiceImplTest {
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
 
-        assertTrue(roomServiceImpl.canVote(roomId));
+        assertFalse(roomServiceImpl.canVote(roomId));
         roomServiceImpl.endVotingPeriod(roomId);
         assertFalse(roomServiceImpl.canVote(roomId));
     }

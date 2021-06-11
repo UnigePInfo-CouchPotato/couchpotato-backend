@@ -180,6 +180,39 @@ class RoomRestServiceIT {
                 .body("error", equalTo("Invalid parameters. Please check your request"));
     }
 
+
+    @Test
+    void testStartVotingPeriod() {
+        given()
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+          .queryParam("roomId", "99rxfyog0a87")
+          .when()
+          .get("/start-vote")
+          .then()
+          .assertThat()
+          .statusCode(HttpStatus.SC_FORBIDDEN)
+          .body(containsString("Unauthorized"));
+
+        given()
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + "{}")
+          .queryParam("roomId", "Fgf2NLjhh9mx")
+          .when()
+          .get("/start-vote")
+          .then()
+          .assertThat()
+          .statusCode(HttpStatus.SC_OK)
+          .body("message", equalTo(String.format("Voting period of room %s has been started successfully", "Fgf2NLjhh9mx")));
+
+        given()
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + UUID.randomUUID())
+          .when()
+          .get("/start-vote")
+          .then()
+          .assertThat()
+          .statusCode(HttpStatus.SC_BAD_REQUEST)
+          .body("error", equalTo("Invalid parameters. Please check your request"));
+    }
+
     @Test
     void testEndJoinPeriod() {
         given()

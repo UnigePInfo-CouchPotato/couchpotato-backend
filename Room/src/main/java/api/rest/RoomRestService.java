@@ -338,6 +338,32 @@ public class RoomRestService {
     }
 
     @GET
+    @Path("/start-vote")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Start voting period")
+    public Response startVotingPeriod(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
+        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
+        Response response = handleParamsAndTests(roomId, headers, true);
+        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
+
+        String bearerToken = authorization.get(0).replace(BEARER, "");
+
+        //Check if user is the administrator of the room
+        if (!roomService.isRoomAdmin(roomId, bearerToken)) {
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, String.format("Unauthorized to start the voting period of the room %s", roomId));
+            return Response.status(Response.Status.FORBIDDEN).entity(errorMessage.toString()).build();
+        }
+
+        //End the voting period
+        roomService.startVotingPeriod(roomId);
+        JSONObject successMessage = new JSONObject();
+        successMessage.put(MESSAGE, String.format("Voting period of room %s has been started successfully", roomId));
+        return Response.status(Response.Status.OK).entity(successMessage.toString()).build();
+    }
+
+    @GET
     @Path("/end-join")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "End join period")
