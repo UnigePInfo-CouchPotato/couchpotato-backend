@@ -144,7 +144,7 @@ class RoomRestServiceIT {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_UNAUTHORIZED)
-                .body(containsString("Unauthorized"));
+                .body("error", equalTo("Unauthorized"));
     }
 
     @Test

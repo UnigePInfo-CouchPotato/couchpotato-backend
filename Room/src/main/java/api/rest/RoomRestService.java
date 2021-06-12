@@ -273,7 +273,10 @@ public class RoomRestService {
     public Response createRoom(@Context HttpHeaders headers) {
         String authorization = headers.getHeaderString(AUTHORIZATION);
         if (authorization == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, UNAUTHORIZED);
+            errorMessage.put(MESSAGE, "No authorization header");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
         }
 
         String bearerToken = authorization.replace(BEARER, "");
@@ -283,7 +286,10 @@ public class RoomRestService {
         JSONObject info = map.get("info");
         boolean isValid = info.getBoolean("valid");
         if (!Objects.equals(System.getProperty("MODE"), "TEST") && !isValid) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, UNAUTHORIZED);
+            errorMessage.put(MESSAGE, "Invalid token");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
         }
 
         //Create a room
