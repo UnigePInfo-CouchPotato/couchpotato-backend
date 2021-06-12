@@ -101,14 +101,6 @@ public class RoomRestService {
                 return Response.status(Response.Status.TOO_MANY_REQUESTS).entity(errorMessage.toString()).build();
             }
 
-            String userNickname = userInfo.getString(NICKNAME);
-            /*Check if user is in this specific room*/
-            if (!Objects.equals(apiEndpoint, "JOIN") && !roomUserService.exists(roomId, userNickname)) {
-                JSONObject errorMessage = new JSONObject();
-                errorMessage.put(ERROR, String.format("User %s is not in this room", userNickname));
-                return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
-            }
-
             return Response.noContent().build();
         }
 
@@ -279,14 +271,12 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a room")
     public Response createRoom(@Context HttpHeaders headers) {
-        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-        if (headers.getHeaderString(AUTHORIZATION) == null)
+        String authorization = headers.getHeaderString(AUTHORIZATION);
+        if (authorization == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
+        }
 
-        if (authorization == null)
-            return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
-
-        String bearerToken = authorization.get(0).replace(BEARER, "");
+        String bearerToken = authorization.replace(BEARER, "");
 
         //Check if token is invalid
         Map<String, JSONObject> map = roomService.checkTokenValidity(bearerToken);
