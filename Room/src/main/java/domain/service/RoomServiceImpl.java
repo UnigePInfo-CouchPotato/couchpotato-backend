@@ -186,9 +186,8 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	@Transactional
-	public void joinRoom(String roomId, String token) {
+	public void joinRoom(String roomId, JSONObject userInfo) {
     	log.info("Add user to a room");
-    	JSONObject userInfo = getUserInfo(token);
     	Room room = get(roomId);
 		String newPreferences = getUserPreferences(userInfo);
 		String userPreferences = room.getUserPreferences();
@@ -386,9 +385,8 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public boolean isUserInRoom(String roomId, String token) {
+	public boolean isUserInRoom(String roomId, JSONObject userInfo) {
 		log.info("Check if user is already in a room");
-		JSONObject userInfo = getUserInfo(token);
 		String userNickname = getUserNickname(userInfo);
 		if (userNickname.isEmpty())
 			return false;

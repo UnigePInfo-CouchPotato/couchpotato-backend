@@ -136,15 +136,6 @@ class RoomRestServiceIT {
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body(containsString("roomId"));
-
-        given()
-                .queryParam("roomId", "99rxfyog0a87")
-                .when()
-                .get("/create")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_UNAUTHORIZED)
-                .body("error", equalTo("Unauthorized"));
     }
 
     @Test

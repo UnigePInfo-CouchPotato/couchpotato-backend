@@ -51,20 +51,19 @@ public class RoomRestService {
 
     /*HANDLING PARAMETERS*/
     private Response handleRoomIdQueryParam(String roomId) {
-        //Check if params are valid (i.e. userId is equal to -1)
         if (roomId == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity(generateBadRequestErrorMessage()).build();
         }
 
         //Check if room exists
-        if (!roomService.exists(roomId)) {
+        if (!Objects.equals(roomId, "ROOM ID") && !roomService.exists(roomId)) {
             JSONObject errorMessage = new JSONObject();
             errorMessage.put(ERROR, String.format("Room %s does not exist", roomId));
             return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
         }
 
         //Default -> Return no content
-        return Response.noContent().build();
+        return Response.noContent().entity(new JSONObject()).build();
     }
 
     private Response handleParams(String roomId, List<String> authorization, String apiEndpoint) {
@@ -78,7 +77,7 @@ public class RoomRestService {
         }
 
         //Check if room exists
-        if (!roomService.exists(roomId)) {
+        if (!Arrays.asList(API_ENDPOINTS).contains(apiEndpoint) && !roomService.exists(roomId)) {
             JSONObject errorMessage = new JSONObject();
             errorMessage.put(ERROR, String.format("Room %s does not exist", roomId));
             return Response.status(Response.Status.NOT_FOUND).entity(errorMessage.toString()).build();
@@ -101,7 +100,7 @@ public class RoomRestService {
                 return Response.status(Response.Status.TOO_MANY_REQUESTS).entity(errorMessage.toString()).build();
             }
 
-            return Response.noContent().build();
+            return Response.status(Response.Status.OK).entity(userInfo).build();
         }
 
         //Default -> Return no content
@@ -111,19 +110,12 @@ public class RoomRestService {
     private Response handleParamsAndTests(String roomId, HttpHeaders headers, String apiEndpoint) {
         final String property = System.getProperty(MODE_PROPERTY);
         if (Objects.equals(property, "TEST")) {
-            Response response = handleRoomIdQueryParam(roomId);
-            if (response.getStatusInfo() != Response.Status.NO_CONTENT)
-                return response;
+            return handleRoomIdQueryParam(roomId);
         }
         else {
             List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
-            Response response = handleParams(roomId, authorization, apiEndpoint);
-            if (response.getStatusInfo() != Response.Status.NO_CONTENT)
-                return response;
+            return handleParams(roomId, authorization, apiEndpoint);
         }
-
-        //Default -> Return no content
-        return Response.noContent().build();
     }
 
     @GET
@@ -271,29 +263,14 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a room")
     public Response createRoom(@Context HttpHeaders headers) {
-        String authorization = headers.getHeaderString(AUTHORIZATION);
-        if (authorization == null) {
-            JSONObject errorMessage = new JSONObject();
-            errorMessage.put(ERROR, UNAUTHORIZED);
-            errorMessage.put(MESSAGE, "No authorization header");
-            return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
-        }
+        Response response = handleParamsAndTests("ROOM ID", headers, "CREATE");
+        if (response.getStatusInfo() != Response.Status.OK && response.getStatusInfo() != Response.Status.NO_CONTENT)
+            return response;
 
-        String bearerToken = authorization.replace(BEARER, "");
-
-        //Check if token is invalid
-        Map<String, JSONObject> map = roomService.checkTokenValidity(bearerToken);
-        JSONObject info = map.get("info");
-        boolean isValid = info.getBoolean("valid");
-        if (!Objects.equals(System.getProperty("MODE"), "TEST") && !isValid) {
-            JSONObject errorMessage = new JSONObject();
-            errorMessage.put(ERROR, UNAUTHORIZED);
-            errorMessage.put(MESSAGE, "Invalid token");
-            return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
-        }
+        JSONObject userInfo = response.readEntity(JSONObject.class);
 
         //Create a room
-        String roomId = roomService.createRoom(info.getJSONObject("userInfo"));
+        String roomId = roomService.createRoom(userInfo);
         JSONObject successMessage = new JSONObject();
         JSONObject data = new JSONObject();
         data.put("roomId", roomId);
@@ -352,7 +329,7 @@ public class RoomRestService {
         if (response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        //End the voting period
+        //Start the voting period
         roomService.startVotingPeriod(roomId);
         JSONObject successMessage = new JSONObject();
         successMessage.put(MESSAGE, String.format("Voting period of room %s has been started successfully", roomId));
@@ -456,15 +433,14 @@ public class RoomRestService {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Join a room")
     public Response joinRoom(@QueryParam("roomId") String roomId, @Context HttpHeaders headers) {
-        List<String> authorization = headers.getRequestHeader(AUTHORIZATION);
         Response response = handleParamsAndTests(roomId, headers, "JOIN");
-        if (response.getStatusInfo() != Response.Status.NO_CONTENT)
+        if (response.getStatusInfo() != Response.Status.OK && response.getStatusInfo() != Response.Status.NO_CONTENT)
             return response;
 
-        String bearerToken = authorization.get(0).replace(BEARER, "");
+        JSONObject userInfo = response.readEntity(JSONObject.class);
 
         //Check if user is already in the room
-        if(roomService.isUserInRoom(roomId, bearerToken)) {
+        if(roomService.isUserInRoom(roomId, userInfo)) {
             JSONObject errorMessage = new JSONObject();
             errorMessage.put(ERROR, "You are already in this room");
             return Response.status(Response.Status.CONFLICT).entity(errorMessage.toString()).build();
@@ -478,7 +454,7 @@ public class RoomRestService {
         }
 
         //Add the user to the room
-        roomService.joinRoom(roomId, bearerToken);
+        roomService.joinRoom(roomId, userInfo);
         JSONObject successMessage = new JSONObject();
         successMessage.put(MESSAGE, String.format("You have joined the room %s successfully", roomId));
         return Response.status(Response.Status.CREATED).entity(successMessage.toString()).build();

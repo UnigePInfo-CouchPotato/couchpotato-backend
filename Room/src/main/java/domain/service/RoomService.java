@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface RoomService {
 
-	boolean isUserInRoom(String roomId, String token);
+	boolean isUserInRoom(String roomId, JSONObject userInfo);
 	String getRoomUsers(String roomId);
 	List<Room> getAll();
 	Room get(String roomId);
@@ -18,7 +18,7 @@ public interface RoomService {
 	boolean canVote(String roomId);
 	boolean isRoomAdmin(String roomId, String token);
 	String createRoom(JSONObject user);
-	void joinRoom(String roomId, String token);
+	void joinRoom(String roomId, JSONObject userInfo);
 	void deleteRoom(String roomId);
 	boolean closeRoom(String roomId);
 	Map<String, JSONObject> checkTokenValidity(String token);

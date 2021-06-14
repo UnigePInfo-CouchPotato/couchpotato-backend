@@ -229,9 +229,9 @@ class RoomServiceImplTest {
         Set<Integer> keySet = hashMap.keySet();
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
-        String token = UUID.randomUUID().toString();
+        JSONObject jsonObject = new JSONObject();
 
-        assertFalse(roomServiceImpl.isUserInRoom(roomId, token));
+        assertFalse(roomServiceImpl.isUserInRoom(roomId, jsonObject));
     }
 
     @Test
@@ -269,9 +269,8 @@ class RoomServiceImplTest {
         Set<Integer> keySet = hashMap.keySet();
         List<Room> rooms = hashMap.get(keySet.iterator().next());
         String roomId = rooms.get(0).getRoomId();
-        String token = UUID.randomUUID().toString().substring(24);
         String nickname = "Admin";
-        roomServiceImpl.joinRoom(roomId, token);
+        roomServiceImpl.joinRoom(roomId, initFakeUserInfo());
         roomUserServiceImpl.create(roomId, nickname);
 
         assertTrue(roomUserServiceImpl.exists(roomId, nickname));
