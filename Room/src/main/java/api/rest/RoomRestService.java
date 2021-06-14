@@ -98,6 +98,7 @@ public class RoomRestService {
                 errorMessage.put(ERROR, UNAUTHORIZED);
                 errorMessage.put(MESSAGE, "Invalid token");
                 errorMessage.put("info", info);
+                errorMessage.put("token", bearerToken);
                 return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
             }
 
