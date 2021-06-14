@@ -73,7 +73,10 @@ public class RoomRestService {
         }
 
         if (authorization == null || authorization.isEmpty()) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
+            JSONObject errorMessage = new JSONObject();
+            errorMessage.put(ERROR, UNAUTHORIZED);
+            errorMessage.put(MESSAGE, "No authorization header");
+            return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
         }
 
         //Check if room exists
@@ -90,8 +93,13 @@ public class RoomRestService {
             Map<String, JSONObject> map = roomService.checkTokenValidity(bearerToken);
             JSONObject info = map.get("info");
             boolean isValid = info.getBoolean("valid");
-            if (!isValid)
-                return Response.status(Response.Status.UNAUTHORIZED).entity(UNAUTHORIZED).build();
+            if (!isValid) {
+                JSONObject errorMessage = new JSONObject();
+                errorMessage.put(ERROR, UNAUTHORIZED);
+                errorMessage.put(MESSAGE, "Invalid token");
+                errorMessage.put("info", info);
+                return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
+            }
 
             JSONObject userInfo = info.getJSONObject("userInfo");
             if (!userInfo.keySet().contains(NICKNAME)) {

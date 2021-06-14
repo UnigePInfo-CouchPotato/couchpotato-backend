@@ -234,6 +234,7 @@ public class RoomServiceImpl implements RoomService {
 
 		Map<String, JSONObject> map = new HashMap<>();
 		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("response", response);
 		jsonObject.put("valid", !Objects.equals(response, UNAUTHORIZED) && !Objects.equals(response, "[]"));
 
 		if (response.equals("[]") || response.equals(UNAUTHORIZED))
