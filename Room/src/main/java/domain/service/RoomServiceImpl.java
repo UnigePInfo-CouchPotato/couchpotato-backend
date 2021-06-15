@@ -243,6 +243,8 @@ public class RoomServiceImpl implements RoomService {
 			return map;
 		}
 
+		System.out.println(response);
+
 		if (response.charAt(0) != '{') {
 			String newResponse = "{" + response + "}";
 			jsonObject.put("userInfo", new JSONObject(newResponse));
