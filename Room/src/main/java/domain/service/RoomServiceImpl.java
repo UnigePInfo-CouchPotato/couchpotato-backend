@@ -237,10 +237,19 @@ public class RoomServiceImpl implements RoomService {
 		jsonObject.put("response", response);
 		jsonObject.put("valid", !Objects.equals(response, UNAUTHORIZED) && !Objects.equals(response, "[]"));
 
-		if (response.equals("[]") || response.equals(UNAUTHORIZED))
+		if (response.equals("[]") || response.equals(UNAUTHORIZED) || response.isEmpty()) {
 			jsonObject.put("userInfo", new JSONObject());
-		else
+			map.put("info", jsonObject);
+			return map;
+		}
+
+		if (response.charAt(0) != '{') {
+			String newResponse = "{" + response + "}";
+			jsonObject.put("userInfo", new JSONObject(newResponse));
+		}
+		else {
 			jsonObject.put("userInfo", new JSONObject(response));
+		}
 
 		map.put("info", jsonObject);
 
