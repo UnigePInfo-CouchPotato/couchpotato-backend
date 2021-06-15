@@ -48,6 +48,7 @@ public class RoomServiceImpl implements RoomService {
 	/*CONSTANTS*/
 	private static final String ERROR = "error";
 	private static final String MESSAGE = "message";
+	private static final String BAD_REQUEST = "Bad request";
 	private static final String UNAUTHORIZED = "Unauthorized";
 	private static final String AUTH0_URL = "https://couchpotato.eu.auth0.com/v2/userinfo";
 	private static final String RECOMMENDATION_SERVICE_URL = "http://recommendation-service:28080/recommendation/";
@@ -67,7 +68,7 @@ public class RoomServiceImpl implements RoomService {
 			}
 
 			if (response.getStatus() != 200) {
-				return "Failed : HTTP error code : " + response.getStatus();
+				return BAD_REQUEST;
 			}
 
 			return response.readEntity(String.class);
@@ -237,12 +238,12 @@ public class RoomServiceImpl implements RoomService {
 		jsonObject.put("response", response);
 		jsonObject.put("valid", !Objects.equals(response, UNAUTHORIZED) && !Objects.equals(response, "[]"));
 
-		if (response.equals("[]") || response.equals(UNAUTHORIZED) || response.isEmpty()) {
+		if (response.equals("[]") || response.equals(UNAUTHORIZED) || response.equals(BAD_REQUEST) || response.isEmpty()) {
 			jsonObject.put("userInfo", new JSONObject());
 			map.put("info", jsonObject);
 			return map;
 		}
-
+		System.out.println(token);
 		System.out.println(response);
 
 		try {
