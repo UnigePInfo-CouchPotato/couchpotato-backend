@@ -102,6 +102,7 @@ public class RoomRestService {
                 return Response.status(Response.Status.UNAUTHORIZED).entity(errorMessage.toString()).build();
             }
 
+            System.out.println(info);
             JSONObject userInfo = info.getJSONObject("userInfo");
             if (!userInfo.keySet().contains(NICKNAME)) {
                 JSONObject errorMessage = new JSONObject();
